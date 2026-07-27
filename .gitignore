@@ -1,0 +1,16 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.iso
+*.qcow2
+*.qcow2.bak
+
+# Temp files
+/tmp/
