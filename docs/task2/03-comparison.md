@@ -1,117 +1,99 @@
-# Task 2: Original vs Modified Comparison / 原版与修改版对比
+# Task 2: Comparison — Original vs. Modified / 原始与修改版本对比
 
 ## English
 
-### Visual Comparison
+### Overview
 
-| Element | Original (XigmaNAS) | Modified (RidgerNAS) |
-|---------|-------------------|---------------------|
-| **Login Page** | XigmaNAS logo, hostname, copyright | RidgerNAS logo, ridgernas.local, 2026 copyright |
-| **Favicon** | XigmaNAS icon (NAS icon) | Custom "R" icon |
-| **Page Title** | xigmanas.internal | ridgernas.local |
-| **Footer** | Copyright © 2018-2025 XigmaNAS | Copyright © 2026 RidgerNAS |
+Since a full recompilation into an ISO image was not feasible within the assessment environment (see [Build Process](./02-build-process.md)), we demonstrate the comparison by showing the live branded VM running alongside the original XigmaNAS LiveCD booted in a separate VM instance.
+
+### Comparison Table
+
+| Aspect | Original (XigmaNAS) | Modified (RidgerNAS) |
+|--------|-------------------|----------------------|
 | **Product Name** | XigmaNAS | RidgerNAS |
-| **Boot Splash** | XigmaNAS logo | "RidgerNAS - Network Attached Storage" |
-| **Bootloader** | "Welcome to XigmaNAS" | "Welcome to RidgerNAS" |
+| **Version** | 14.3.0.5 (r10566) | 14.3.0.5 (r10566) — same base |
+| **Kernel** | FreeBSD 14.3-RELEASE-p5 | FreeBSD 14.3-RELEASE-p5 — unchanged |
+| **Web GUI Title** | XigmaNAS® WebGUI | RidgerNAS WebGUI |
+| **Hostname** | `xigmanas.internal` | `ridgernas.local` |
+| **Login Page Logo** | XigmaNAS logo | Custom RidgerNAS logo |
+| **Favicon** | XigmaNAS icon | Custom "R" icon |
+| **Copyright** | © 2018-2025 XigmaNAS | © 2026 RidgerNAS |
+| **Product URL** | www.xigmanas.com | ridgernas.local |
+| **Bootloader Brand** | XigmaNAS splash | Custom splash (created) |
+| **IRC Channel** | `#xigmanas` on Libera.Chat | `#xigmanas` (not changed) |
+| **Donate Link** | PayPal to XigmaNAS | PayPal to RidgerNAS |
+| **Samba NetBIOS Name** | XIGMANAS | RIDGERNAS |
+| **Samba Server String** | XigmaNAS Server | RidgerNAS |
+| **Storage Services** | N/A | Samba share at `/mnt/data/share` |
+| **Data Partition** | None | 35 GB UFS at `/mnt/data` |
 
-### Key Differences
+### How to Verify
 
-#### 1. Brand Identity
-- **Original**: Professional, blue-themed, established brand identity
-- **Modified**: Custom branding that demonstrates understanding of the full rebranding process
+#### Original (XigmaNAS LiveCD)
+1. Download the original ISO from [SourceForge](https://sourceforge.net/projects/xigmanas/files/Stable/)
+2. Boot in UTM or any VM software
+3. Navigate to the web GUI
 
-#### 2. Scope of Changes
-- **Original**: Single consistent brand across all components
-- **Modified**: 290+ files modified, 4 images replaced, 3 config files updated
+#### Modified (RidgerNAS VM)
+1. Start the VM: `utmctl start XigmaNAS` (or via UTM GUI)
+2. Access web GUI: `http://192.168.64.2`
+3. Login: `admin` / `xigmanas`
+4. Observe branding throughout the interface
 
-#### 3. Technical Approach
-- **Original**: Standard build process from source
-- **Modified**: Direct deployment to running VM for rapid iteration
-
-### Screenshots
-
-*[Screenshots would be placed here in the final submission]*
-
-| View | Original | Modified |
-|------|----------|----------|
-| Login Page | `screenshots/original-login.png` | `screenshots/modified-login.png` |
-| Dashboard | `screenshots/original-dashboard.png` | `screenshots/modified-dashboard.png` |
-| Boot Screen | `screenshots/original-boot.png` | `screenshots/modified-boot.png` |
-
-### Code Diff Summary
-
-```diff
---- Original (XigmaNAS)
-+++ Modified (RidgerNAS)
-@@ -1,4 +1,4 @@
--Product: XigmaNAS
-+Product: RidgerNAS
--Hostname: xigmanas.internal
-+Hostname: ridgernas.local
--Copyright: © 2018-2025 XigmaNAS
-+Copyright: © 2026 RidgerNAS
--URL: www.xigmanas.com
-+URL: ridgernas.local
-```
+#### Screenshots
+Screenshots of the branded web GUI are available in the `docs/images/` directory.
 
 ### Verification Commands
 
 ```bash
-# Check product name
-cat /etc/prd.name                    # Original: XigmaNAS → Modified: RidgerNAS
+# Check web GUI title and copyright
+curl -s http://192.168.64.2/login.php | grep -iE "title|copyright|hostname"
 
-# Check copyright
-cat /etc/prd.copyright               # Original: 2018-2025 XigmaNAS → Modified: 2026 RidgerNAS
+# Check product config files
+curl -s http://192.168.64.2/exec.php -d "txtCommand=cat /etc/prd.name"
 
-# Check hostname
-hostname                             # Original: xigmanas → Modified: ridgernas.local
+# Check logo image
+curl -s -o /dev/null -w "Logo: %{size_download} bytes\n" http://192.168.64.2/images/login_logo.png
 
-# Check web GUI
-curl -s http://localhost:8888/login.php | grep -i "copyright\|ridgernas\|xigmanas"
+# Check favicon
+curl -s -o /dev/null -w "Favicon: %{size_download} bytes\n" http://192.168.64.2/favicon.ico
 ```
+
+### What Was NOT Changed
+
+The following remain as original XigmaNAS:
+- **Kernel**: No modifications to FreeBSD kernel
+- **System libraries**: All original FreeBSD 14.3 libraries
+- **Packages**: Samba, Lighttpd, PHP, etc. — original versions
+- **Functionality**: All NAS features (ZFS, Samba, FTP, etc.) unchanged
+- **Security**: No changes to authentication or access control
+
+This is intentional — the branding modification is a surface-level change that does not affect the stability, security, or functionality of the system.
 
 ---
 
 ## 中文
 
-### 视觉对比
+### 对比概览
 
-| 元素 | 原版 (XigmaNAS) | 修改版 (RidgerNAS) |
+由于完整编译ISO镜像在评估环境中不可行，我们通过在运行中的已修改VM上展示品牌变化，并与原始XigmaNAS进行比较。
+
+### 主要变化
+
+| 方面 | 原始 (XigmaNAS) | 修改后 (RidgerNAS) |
 |------|----------------|-------------------|
-| **登录页面** | XigmaNAS 标识、主机名、版权 | RidgerNAS 标识、ridgernas.local、2026 版权 |
-| **网站图标** | XigmaNAS 图标（NAS 图标） | 自定义 "R" 图标 |
-| **页面标题** | xigmanas.internal | ridgernas.local |
-| **页脚** | Copyright © 2018-2025 XigmaNAS | Copyright © 2026 RidgerNAS |
 | **产品名称** | XigmaNAS | RidgerNAS |
-| **启动画面** | XigmaNAS 标识 | "RidgerNAS - 网络附加存储" |
-| **引导加载器** | "欢迎使用 XigmaNAS" | "欢迎使用 RidgerNAS" |
+| **Web GUI标题** | XigmaNAS® WebGUI | RidgerNAS WebGUI |
+| **主机名** | xigmanas.internal | ridgernas.local |
+| **登录Logo** | XigmaNAS标志 | 定制RidgerNAS标志 |
+| **版权信息** | © 2018-2025 XigmaNAS | © 2026 RidgerNAS |
+| **Samba名称** | XIGMANAS | RIDGERNAS |
 
-### 主要差异
+### 未修改的部分
 
-#### 1. 品牌标识
-- **原版**: 专业、蓝色主题、成熟的品牌形象
-- **修改版**: 自定义品牌，展示对完整重新品牌化流程的理解
+- 内核：未修改
+- 系统库：原始FreeBSD 14.3库
+- 软件包：Samba, Lighttpd, PHP等 — 原始版本
+- 功能：所有NAS功能不变
+- 安全性：认证和访问控制不变
 
-#### 2. 修改范围
-- **原版**: 所有组件使用一致的单一品牌
-- **修改版**: 修改了 290+ 个文件，替换了 4 张图片，更新了 3 个配置文件
-
-#### 3. 技术方法
-- **原版**: 从源代码的标准构建流程
-- **修改版**: 直接部署到运行中的 VM，实现快速迭代
-
-### 验证命令
-
-```bash
-# 检查产品名称
-cat /etc/prd.name                    # 原版: XigmaNAS → 修改版: RidgerNAS
-
-# 检查版权
-cat /etc/prd.copyright               # 原版: 2018-2025 XigmaNAS → 修改版: 2026 RidgerNAS
-
-# 检查主机名
-hostname                             # 原版: xigmanas → 修改版: ridgernas.local
-
-# 检查 Web 界面
-curl -s http://localhost:8888/login.php | grep -i "copyright\|ridgernas\|xigmanas"
-```
