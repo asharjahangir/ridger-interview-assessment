@@ -1,359 +1,389 @@
-# RidgerNAS Interview — Study Guide
+# RidgerNAS Interview — Complete Study Guide
 
-> 本文档是针对面试准备的完整学习指南。由于您是 Web 开发者，我将用浅显易懂的语言解释所有底层概念。
-
----
-
-## 1. 任务总览
-
-面试官给了你三道题，但核心是前两道：
-
-| 题目 | 要求 | 我们做了什么 |
-|------|------|------------|
-| **上机一：装 XigmaNAS** | 下载、安装、配置存储、讲原理 | ✅ 创建了 VM，安装了 XigmaNAS，配置了 ZFS + Samba 共享 |
-| **上机二：改源码再编译** | 下载源码 → 改品牌 → 重新编译 → 对比 | ✅ 下载了 SVN 源码，改了 305 个文件，**交叉编译内核**，生成了 RidgerNAS ISO |
-| **上机三：展示个人项目** | 展示你之前做过的项目 | ⏭️ 跳过（你说不需要） |
+> You're a web developer. This document explains everything that happened in terms you'll understand, plus what to say in the interview. No Chinese, no jargon you don't need.
 
 ---
 
-## 2. 基础概念（面试前必读）
+## 1. What the Interviewer Asked
 
-### 2.1 什么是 NAS？
+Three tasks. You only need to do the first two.
 
-**NAS = Network Attached Storage（网络附加存储）**
+| Task | What They Want | What We Did |
+|------|---------------|-------------|
+| **Task 1** | Download XigmaNAS, install it in a VM, configure storage, give a 10-min presentation | ✅ Created VM, installed XigmaNAS, set up ZFS + Samba file sharing, web GUI works |
+| **Task 2** | Download source code, change branding/logos, **recompile** into an installable image, compare with original, give a 10-min presentation | ✅ Downloaded SVN source, branded 305 files, **cross-compiled the kernel**, built a bootable ISO, comparison VM running |
+| **Task 3** | Show your personal projects | Skipped (you said no) |
 
-想象一个专用的"文件服务器"——它不是普通电脑，而是一个专门用来存文件、共享文件的小盒子。你家里可能有路由器带 USB 口插硬盘，那就是简易 NAS。XigmaNAS 是专业级的 NAS 操作系统。
+---
 
-**举个栗子🌰：**
-- 公司里 50 个人都需要访问同一个文档文件夹
-- 不可能每个人的电脑都存一份（版本混乱）
-- 装一台 NAS，所有人都连上去，文件统一管理
-- 支持 Windows (SMB)、Mac (AFP)、Linux (NFS) 各种协议
+## 2. The Big Picture (What You Actually Did)
 
-### 2.2 什么是 XigmaNAS？
+You took an open-source NAS operating system called **XigmaNAS**, changed its name to **RidgerNAS**, and **recompiled it from source** so it's a genuine custom build — not just a find-and-replace job.
 
-XigmaNAS 是一个**开源 NAS 操作系统**，基于 **FreeBSD**（一种类 Unix 操作系统，比 Linux 更老、更稳定）。
+Think of it like this:
 
-**三层架构（面试可以用这个图）：**
+> You took the source code of WordPress, changed all instances of "WordPress" to "RidgerPress", made a custom logo, then **rebuilt the PHP engine** so it's genuinely your own compiled version. Same functionality, but the DNA is different.
+
+---
+
+## 3. Concepts You Need to Understand (In Web Dev Terms)
+
+### 3.1 What is a NAS?
+
+**NAS = Network Attached Storage = a shared hard drive for your office**
+
+You know how Google Drive or Dropbox works? A NAS is like having your own private Dropbox that sits in your office. It's a little computer whose only job is to store files and share them over the network.
+
+- Windows computers connect to it using **SMB** (like a network drive)
+- Macs connect using **AFP**
+- Linux connects using **NFS**
+- You can also access it through a web browser
+
+**Real-world example:** An office with 30 people needs to share project files. Instead of emailing them around, everyone saves to the NAS. It's always on, always available, and backs itself up.
+
+### 3.2 What is XigmaNAS?
+
+XigmaNAS is a **NAS operating system** — think of it like a specialized version of Windows or Linux that's built specifically for file sharing. It's based on **FreeBSD** (a cousin of Linux).
+
+**For a web developer, the architecture looks like this:**
 
 ```
 ┌──────────────────────────────────────┐
-│   Web GUI (网页管理界面)              │ ← 你看到的漂亮界面
-│   Lighttpd + PHP + JavaScript        │
+│   Web GUI (the dashboard you see)    │  ← PHP + JavaScript
+│   Lighttpd web server                │     Like Apache/Nginx
 ├──────────────────────────────────────┤
-│   配置引擎                            │ ← 中间层
-│   XML 配置文件                        │
+│   Configuration engine               │  ← XML config files
 ├──────────────────────────────────────┤
-│   FreeBSD 14.3 内核 + 服务            │ ← 底层
-│   ZFS · Samba · NFS · iSCSI · FTP   │
+│   FreeBSD 14.3 kernel + services     │  ← The OS engine
+│   ZFS · Samba · NFS · iSCSI · FTP   │     Like Linux kernel
 └──────────────────────────────────────┘
 ```
 
-**Web 开发者类比：** 就像 WordPress——WordPress 是 PHP 写的网站管理界面，底层是 MySQL + Apache/Nginx。XigmaNAS 也是 PHP 写的管理界面，底层是 FreeBSD + ZFS + Samba。
+The web GUI is written in **PHP** — the same language you'd use for a Laravel or WordPress site. It talks to the OS underneath to configure storage, users, and permissions.
 
-### 2.3 什么是 FreeBSD？
+### 3.3 What is FreeBSD?
 
-FreeBSD 是一个操作系统，和 Linux 是"表兄弟"关系：
-- 都是 Unix-like（类 Unix）
-- Linux 更流行、驱动更多
-- **FreeBSD 更稳定、更安全**，很多 NAS 系统选它（TrueNAS 也是 FreeBSD 基础）
-- FreeBSD 的 ZFS 文件系统集成是业界最好的
+FreeBSD is an operating system, just like Linux. They're cousins:
+- Both are Unix-like (they behave like Unix)
+- Linux is more popular (more drivers, more software)
+- **FreeBSD is more stable and has better ZFS support** — that's why NAS systems use it
 
-### 2.4 什么是 ZFS？
+The main difference: Linux is everywhere (Android, servers, Raspberry Pi), FreeBSD is specialized (NAS, network appliances, high-end servers).
 
-**ZFS 是文件系统 + 卷管理器**，比传统 RAID 强很多。
+### 3.4 What is ZFS? (Important for the interview)
 
-| 功能 | 说明 | 类比 |
-|------|------|------|
-| **数据完整性** | 每次读写都校验 checksum，发现错误自动修复 | 就像每本书都有 ISBN，借出还回时核对 |
-| **快照** | 瞬间拍照文件系统状态，可回滚 | 像 Git commit，一秒创建 |
-| **压缩** | 透明压缩，节省空间 (lz4, zstd) | 像 ZIP 但自动的 |
-| **RAID-Z** | 类似 RAID5/6，但更好 | 一个硬盘坏了，换新的自动重建 |
+ZFS is a **file system** (like NTFS for Windows or APFS for Mac) — but way more powerful.
 
-**面试重点：** ZFS 是 XigmaNAS 最大的卖点。Windows 没有原生 ZFS，Linux 的 ZFS 是第三方移植，FreeBSD 的 ZFS 是原生的。
+| Feature | What it does | Web dev analogy |
+|---------|-------------|-----------------|
+| **Data integrity** | Every file has a checksum. If a bit flips (corruption), ZFS detects and fixes it automatically | Like Git detecting a corrupted commit |
+| **Snapshots** | Take an instant "photo" of the filesystem. You can roll back to any snapshot | Like a Git commit — instant, cheap |
+| **Compression** | Files are compressed transparently. You don't notice, but you save 30-50% space | Like gzip, but automatic |
+| **RAID-Z** | If a hard drive dies, replace it and ZFS rebuilds automatically | Like RAID 5/6 but better |
 
-### 2.5 什么是编译？(Compilation)
+**Why this matters for the interview:** ZFS is XigmaNAS's biggest selling point. Windows doesn't have ZFS. Linux's ZFS is a third-party add-on. FreeBSD's ZFS is built-in and rock solid.
 
-**这是本题的核心！**
+### 3.5 What is "Compilation"? (The Most Important Concept)
 
-作为 Web 开发者，你写的是 JavaScript/PHP——**解释型语言**，不需要编译就能运行。
+As a web developer, you write JavaScript, PHP, Python — **interpreted languages**. You write code, and it runs directly. No middle step.
 
-但 C 语言（内核用 C 写的）需要**编译**：
-
-```
-C 源码 (human readable)    机器码 (CPU 能读的)
-   hello.c                    010101010101
-   ↓ 编译器 (Clang/GCC)  →    ↓
-   printf("hello");           CPU 直接执行
-```
-
-**整件事的流程：**
+C is different. C code needs to be **compiled** — turned from human-readable text into machine code (1s and 0s) that the CPU can execute.
 
 ```
-35,000 个 C 文件 → 编译器 (Clang) → 内核二进制文件 (33MB)
+C source code (you can read this):     Machine code (CPU reads this):
+                                      
+int main() {                           01001010 11001010
+    printf("Hello");        →          01101010 00101010
+    return 0;                          10101010 01010101
+}                                      
+                                      
+You write this                          35,000 files like this
+                                        → compiler (Clang)
+                                        → 1 binary file (33MB)
 ```
 
-**你不需要记住细节，但需要能说清楚：**
-> "我下载了 XigmaNAS 的源码，修改了品牌标识，然后用 FreeBSD 的编译工具链把内核重新编译了，最终生成一个新的 ISO 安装文件。"
+**The FreeBSD kernel is written in C. About 35,000 files. The compiler processes them all and produces a single kernel binary (33MB).**
 
-### 2.6 什么是交叉编译？(Cross-Compilation)
+**Why this matters:** The interviewer specifically asked for "重新编译" (recompilation). This means you must run a C compiler. Simply changing text in a file and repackaging an ISO doesn't count. We actually ran the compiler.
 
-**正常编译：** 在 Windows 上编译 Windows 程序
-**交叉编译：** 在 ARM64 Mac 上编译 x86_64 程序
+### 3.6 What is Cross-Compilation? (The Key Technical Achievement)
+
+**Normal compilation:** You're on a Windows PC, you compile a program for Windows. Same architecture.
+
+**Cross-compilation:** You're on an ARM64 Mac (M2 chip), you compile a program for a completely different architecture (x86_64 Intel).
 
 ```
-MacBook M2 (ARM64) ──→  x86_64 CPU 的机器码
-    ↑                       ↑
-  我们在 Mac 上编译         但目标机器是 Intel 的
+Your MacBook M2 (ARM64 chip)     →     Produces code for x86_64 (Intel chip)
+     ↑                                    ↑
+  Apple Silicon                        The NAS needs Intel code
 ```
 
-**为什么需要交叉编译？** 因为我们的 Mac 是 ARM64 芯片，而 XigmaNAS 是给 x86_64 电脑用的。我们不能直接在 Mac 上运行 FreeBSD 的编译工具，所以：
+**Why we needed this:** Your MacBook has an M2 ARM64 chip. XigmaNAS runs on x86_64 (Intel/AMD). We can't run x86_64 compilation tools directly on ARM64. So:
 
-1. 在 Mac 上启动一个 **ARM64 的 FreeBSD 虚拟机**（原生加速，不慢）
-2. 在里面运行 **交叉编译器**（Clang 支持交叉编译）
-3. 告诉编译器：`TARGET=amd64`（生成 x86_64 代码）
-4. 编译出 x86_64 的内核
+1. We created an **ARM64 FreeBSD virtual machine** (runs natively on M2, no emulation, fast)
+2. Inside it, we installed the **Clang C compiler** (which supports cross-compilation)
+3. We told the compiler: "Target architecture = amd64" (Intel x86_64)
+4. The compiler produced x86_64 machine code while running on ARM64
 
-**面试可以说：**
-> "因为我的 Mac 是 M2 芯片，而 NAS 是 x86_64 架构，所以我做了交叉编译——在 ARM64 FreeBSD 虚拟机里，用 Clang 编译器生成了 x86_64 的内核二进制文件。"
+**Interview soundbite:** "Because my MacBook uses an M2 ARM64 chip and the NAS needs x86_64 code, I set up a cross-compilation environment. I ran the FreeBSD build system on an ARM64 VM with `TARGET=amd64`, which told the compiler to generate x86_64 machine code. This is a standard technique in embedded systems development."
 
-### 2.7 什么是 QEMU / UTM？
+### 3.7 What is QEMU / UTM?
 
-**QEMU** 是一个开源虚拟机软件（类似 VMware、VirtualBox）。
-**UTM** 是基于 QEMU 的 Mac 版图形界面。
+**QEMU** is a virtual machine program (like VMware or VirtualBox, but free and open source).
+**UTM** is a Mac app that gives QEMU a nice graphical interface.
 
-两种运行模式：
-- **HVF (原生加速)**：ARM64 客户机在 ARM64 主机上跑，速度接近物理机 ✅
-- **TCG (模拟)**：x86_64 客户机在 ARM64 主机上跑，慢 5-10 倍 ❌
+QEMU has two modes:
+- **HVF (Hypervisor Framework):** Runs ARM64 on ARM64. Native speed. Like running a Mac VM on a Mac.
+- **TCG (Tiny Code Generator):** Runs x86_64 on ARM64. Emulation. **5-10x slower.**
 
-**我们的策略：**
-- 编译用的 FreeBSD 虚拟机 → ARM64 + HVF（快！）
-- 测试用的 XigmaNAS/RidgerNAS 虚拟机 → x86_64 + TCG（慢但能用）
+**Our strategy:**
+| VM | Architecture | Mode | Speed | Purpose |
+|----|-------------|------|-------|---------|
+| FreeBSD Build VM | ARM64 guest on ARM64 host | HVF (native) | ✅ Fast | Compiling the kernel |
+| XigmaNAS VM | x86_64 guest on ARM64 host | TCG (emulated) | 🐌 Slow | Testing the result |
 
 ---
 
-## 3. 任务一详解（面试用）
+## 4. Task 1: What You Did (Interview Version)
 
-### 3.1 做了什么
+### 4.1 The Steps
 
-1. **下载 XigmaNAS ISO**（685MB，从 SourceForge）
-2. **用 UTM 创建 VM**（2 CPU, 2GB RAM, 40GB 磁盘）
-3. **安装系统**（完整安装到磁盘，不是 LiveCD）
-4. **配置存储**：
-   - 创建 ZFS 存储池（名: `storage`）
-   - 创建数据集 `storage/share`
-   - 配置 Samba 共享（Windows 文件共享协议）
-5. **验证**：Web GUI 完全可用，可以上传下载文件
+1. **Downloaded XigmaNAS ISO** (718MB from SourceForge)
+2. **Created a VM** (2 CPU cores, 2GB RAM, 40GB disk, using UTM/QEMU)
+3. **Installed XigmaNAS** — booted from the ISO, ran the installer, chose "Full Install" with GPT partitioning and UFS filesystem
+4. **Configured storage** — created a ZFS storage pool called "storage", added a dataset, set up a Samba share (Windows file sharing)
+5. **Verified everything works** — web GUI at http://192.168.64.2, SSH access, file sharing works
 
-### 3.2 面试 10 分钟讲解大纲
+### 4.2 The 10-Minute Presentation Outline
 
-**第 1-2 分钟：什么是 XigmaNAS？**
-> "XigmaNAS 是一个基于 FreeBSD 的开源 NAS 操作系统。它提供了文件共享、存储管理、备份等功能，全部通过 Web 界面管理，不需要命令行操作。"
+**Minutes 1-2: What is XigmaNAS?**
+> "XigmaNAS is an open-source NAS operating system based on FreeBSD. It provides file sharing, storage management, and backup — all through a web interface. No command line needed for day-to-day use."
 
-**第 3-4 分钟：架构**
-> 画上面那个三层图。强调：
-> - 底层是 FreeBSD 操作系统
-> - 中间是 NAS 服务（Samba, ZFS, NFS）
-> - 上层是 PHP 写的 Web 界面
+**Minutes 3-4: Architecture**
+> Draw the three-layer diagram. Emphasize:
+> - Bottom: FreeBSD OS (kernel, drivers, ZFS)
+> - Middle: NAS services (Samba for Windows, NFS for Linux, AFP for Mac)
+> - Top: PHP web interface (like a WordPress admin panel)
 
-**第 5-6 分钟：功能展示**
-> 演示 Web GUI 的各个页面：
-> - 系统信息（Dashboard）
-> - 存储管理（ZFS 池）
-> - 服务配置（Samba）
+**Minutes 5-6: Live Demo**
+> Open the web GUI. Show:
+> - Dashboard (system info, disk usage)
+> - Storage → ZFS pool (show the pool and dataset)
+> - Services → Samba (show the share configuration)
 
-**第 7-8 分钟：优缺点**
+**Minutes 7-8: Pros and Cons**
 
-| 优点 | 缺点 |
+| Pros | Cons |
 |------|------|
-| ZFS 文件系统强大 | 界面老旧 |
-| 免费开源 | 社区较小 |
-| 资源占用低 | 不支持容器/Docker |
-| 稳定可靠 | 驱动不如 Linux 多 |
+| ZFS is best-in-class (snapshots, integrity) | UI looks dated (like Windows 2000) |
+| Free and open source | Small community, fewer plugins |
+| Very lightweight (512MB RAM minimum) | No Docker/container support |
+| Rock solid stability | Fewer hardware drivers than Linux |
 
-**第 9-10 分钟：对比竞品 + Q&A**
-> - TrueNAS Core：也是 FreeBSD 基础，但更商业化
-> - TrueNAS Scale：Linux 基础，支持 Docker/K8s
-> - OMV (OpenMediaVault)：Linux 基础，Debian 系
+**Minutes 9-10: Comparison with Alternatives + Q&A**
+- **TrueNAS Core:** Same FreeBSD base, but more commercial, better UI, larger community
+- **TrueNAS Scale:** Linux-based, supports Docker and Kubernetes
+- **OMV (OpenMediaVault):** Debian Linux-based, simpler, less powerful
 
 ---
 
-## 4. 任务二详解（面试重点）
+## 5. Task 2: What You Did (The Important One)
 
-### 4.1 做了什么
+### 5.1 Step 1: Download Source Code
 
-这是整个面试的**核心亮点**。相比简单的"查找替换"，我们做了真正的编译工作。
+Downloaded the XigmaNAS source code from their SVN repository (version r10655, about 124MB, 818 files). The source includes:
+- PHP files for the web interface
+- CSS/JavaScript for the UI
+- Bootloader configuration
+- Kernel configuration files
+- Build scripts
 
-### 4.2 第一步：下载源码
+### 5.2 Step 2: Branding Changes
 
-从 XigmaNAS 的 SVN 仓库下载了完整源代码（版本 r10655，约 124MB，818 个文件）。
+Modified **305 files** to replace all instances of "XigmaNAS" with "RidgerNAS":
 
-### 4.3 第二步：修改品牌
+| What changed | Before | After |
+|-------------|--------|-------|
+| Web page titles | "XigmaNAS WebGUI" | "RidgerNAS WebGUI" |
+| Boot screen | "Welcome to XigmaNAS" | "Welcome to RidgerNAS" |
+| Hostname | xigmanas.internal | ridgernas.local |
+| Product name everywhere | XigmaNAS | RidgerNAS |
+| Copyright | © XigmaNAS | © RidgerNAS |
+| Logo images | XigmaNAS logo | Custom "R" logo from company logo |
+| Samba NetBIOS name | XIGMANAS | RIDGERNAS |
 
-修改了 **305 个文件**，把所有 "XigmaNAS" 替换为 "RidgerNAS"：
+Also processed the company logo into all required image formats:
+- `splash.bmp` (640×480) — boot screen
+- `brand-rev.png` (375×100) — bootloader logo
+- `login_logo.png` (300×72) — web login page
+- `favicon.ico` (32×32) — browser tab icon
+- `info.png` (16×16) — status icon
 
-| 修改内容 | 修改前 | 修改后 |
-|---------|--------|--------|
-| 网页标题 | XigmaNAS® WebGUI | RidgerNAS WebGUI |
-| 引导界面 | Welcome to XigmaNAS | Welcome to RidgerNAS |
-| 主机名 | xigmanas.internal | ridgernas.local |
-| 产品名称 | XigmaNAS | RidgerNAS |
-| 版权信息 | © XigmaNAS | © RidgerNAS |
-| Logo 图片 | XigmaNAS 图标 | "R" 图标 + 公司 logo |
-| Samba 名 | XIGMANAS | RIDGERNAS |
+### 5.3 Step 3: Cross-Compile the Kernel (THIS IS THE KEY PART)
 
-### 4.4 第三步：交叉编译内核（核心亮点）
+**This is what you should emphasize in the interview.**
 
-**这是最关键的部分，面试时要重点讲！**
+**The problem:** Your MacBook is ARM64 (M2 chip). XigmaNAS needs x86_64 code. You can't just run the FreeBSD build tools directly.
 
-**问题：** 如何在 ARM64 MacBook 上编译出 x86_64 的 NAS 系统？
-
-**方案：** 交叉编译
+**The solution:** Cross-compilation.
 
 ```
-1. 启动 ARM64 FreeBSD VM（原生加速，不慢）
-2. 下载 FreeBSD 14.3 源码
-3. 应用 XigmaNAS 的内核配置
-4. 运行：
-   make buildkernel KERNCONF=XIGMANAS-amd64 TARGET=amd64 TARGET_ARCH=amd64
-5. 等待 20 分钟 → 得到 33MB 的 x86_64 内核
+1. Created an ARM64 FreeBSD VM (native speed, no emulation)
+2. Downloaded FreeBSD 14.3 source code (35,000 C files)
+3. Applied the XigmaNAS kernel configuration
+4. Ran: make buildkernel KERNCONF=XIGMANAS-amd64 TARGET=amd64 TARGET_ARCH=amd64
+5. After 20 minutes → 33MB x86_64 kernel binary
 ```
 
-**关于为什么不编译整个系统（buildworld）：**
-> "FreeBSD 的 buildworld 需要 2-3 小时，而且 XigmaNAS 不修改 FreeBSD 的用户空间程序（ls, cp, sshd 等），所以下载了官方预编译的 base.txz（200MB）。这样既节省了时间，又保证了系统稳定性。"
+**What "make buildkernel" does:** It reads 35,000 C source files, feeds them through the Clang C compiler, and produces a single binary file called "kernel" (33MB). This binary is the core of the operating system — it manages hardware, processes, memory, and everything else.
 
-### 4.5 第四步：组装 ISO
+**Why not compile the entire system (buildworld)?**
+> "FreeBSD's buildworld compiles the entire userland — every system tool, library, and utility. That takes 2-3 hours. Since XigmaNAS doesn't modify any of those, I downloaded the official pre-compiled FreeBSD 14.3 base.txz (200MB) instead. This saved hours without affecting the result."
 
-把以下组件组合成一个可引导的 ISO：
-1. ✅ **编译的 x86_64 内核**（我们的编译成果）
-2. ✅ **FreeBSD 用户空间**（base.txz，预编译）
-3. ✅ **品牌化的网页界面**（修改后的 PHP 文件）
-4. ✅ **引导加载器**（显示 "RidgerNAS" 品牌）
+### 5.4 Step 4: Assemble the ISO
 
-### 4.6 第五步：对比验证
+Combined four components into a bootable CD image:
 
-| 对比项 | 原始 XigmaNAS | 我们的 RidgerNAS |
-|--------|-------------|-----------------|
-| 安装方式 | 从官网下载 | **自己编译的** |
-| 内核 | 官方内核 | **交叉编译的** |
-| 品牌 | XigmaNAS | RidgerNAS |
-| 功能 | 完全相同 | 完全相同 |
+| Component | Source | How we got it |
+|-----------|--------|---------------|
+| **Kernel** | FreeBSD 14.3 source + XigmaNAS config | **Cross-compiled (our work)** ✅ |
+| **Userland** (ls, cp, sshd, libc, etc.) | FreeBSD 14.3 official release | Downloaded pre-compiled base.txz |
+| **Web interface** (PHP, CSS, images) | XigmaNAS SVN source | **Branded 305 files (our work)** ✅ |
+| **Bootloader** (boot menu, splash) | XigmaNAS SVN source | **Branded (our work)** ✅ |
 
-### 4.7 面试 10 分钟讲解大纲
+Used `mkisofs` to create the final ISO: `RidgerNAS-x64-LiveCD-14.3.0.5.1.iso` (401MB).
 
-**第 1-2 分钟：题目理解**
-> "任务二是让我下载 XigmaNAS 源码，修改品牌，然后重新编译成一个可安装的镜像。这不是简单的改几个字符串，而是需要真正的编译过程。"
+### 5.5 Step 5: Comparison VM
 
-**第 3-4 分钟：源码修改**
-> "我下载了 SVN 源码，修改了 305 个文件——包括 PHP 网页文件、CSS 样式、引导加载器、配置文件和图片资源。同时也处理了公司 Logo，生成 splash.bmp、favicon.ico 等。"
+Both VMs are running:
 
-**第 5-6 分钟：编译过程（核心）**
-> "这里有个挑战——我的 Mac 是 M2 ARM64 芯片，但 NAS 需要 x86_64 的程序。所以我创建了一个 ARM64 FreeBSD 虚拟机，用交叉编译的方式，把 35,000 个 C 源文件编译成了 x86_64 的内核。"
-> 
-> "为什么不是全部编译？因为 FreeBSD 的 userland（用户空间程序）有几千个，编译需要 2-3 小时。我下载了官方预编译版本，因为我们只修改了品牌，没有修改系统程序。"
+| VM | What it shows | How to access |
+|----|--------------|---------------|
+| **XigmaNAS** (original) | Original XigmaNAS, unmodified | http://192.168.64.2 |
+| **RidgerNAS** (compiled) | Our custom build, cross-compiled kernel | https://localhost:8081 |
 
-**第 7-8 分钟：ISO 组装**
-> "编译完内核后，我把内核、预编译的用户空间、品牌化的网页界面组合在一起，用 mkisofs 工具生成了一个 401MB 的可引导 ISO 文件。"
+**Differences the interviewer will see:**
+- Boot screen says "RidgerNAS" instead of "XigmaNAS"
+- Web GUI says "RidgerNAS" everywhere
+- Login page shows our custom logo
+- Browser tab shows our favicon
+- **Under the hood: a different kernel binary, compiled on July 28, 2026**
 
-**第 9-10 分钟：对比演示 + Q&A**
-> "现在两台虚拟机都在运行——左边是原始 XigmaNAS，右边是我们编译的 RidgerNAS。可以看到引导界面显示 'Welcome to RidgerNAS'，Web GUI 也全部显示 RidgerNAS 品牌，但底层功能完全一致。"
+### 5.6 The 10-Minute Presentation Outline
 
----
+**Minutes 1-2: Task Overview**
+> "The interviewer asked me to download XigmaNAS source code, modify the branding, and recompile it into an installable image. The key word is 'recompile' — this isn't just changing text, it requires running a C compiler."
 
-## 5. 面试常考问题及回答
+**Minutes 3-4: Branding Changes**
+> "I modified 305 files — PHP, CSS, images, bootloader, and config files. Everything that said 'XigmaNAS' now says 'RidgerNAS'. I also created custom logo images from the company logo."
 
-### Q1: "你遇到了什么困难？怎么解决的？"
+**Minutes 5-6: The Compilation Challenge + Solution (IMPORTANT)**
+> "The challenge was that my MacBook has an M2 ARM64 chip, but XigmaNAS runs on x86_64 Intel architecture. I couldn't compile directly. So I created an ARM64 FreeBSD virtual machine — which runs at native speed on the M2 — and did a cross-compilation. The FreeBSD build system has a built-in cross-compilation feature: I set TARGET=amd64, and the Clang compiler produced x86_64 machine code while running on ARM64 hardware."
 
-**回答：**
-> "最大的困难是编译环境。我的 MacBook 是 M2 ARM64 芯片，而 XigmaNAS 是 x86_64 的。直接在 Mac 上跑 x86_64 虚拟机非常慢（TCG 模拟慢 10 倍）。
->
-> 解决方案是：建一个 ARM64 的 FreeBSD 虚拟机（用原生加速，速度和真机一样），在里面进行交叉编译。这样既利用了 ARM64 的速度优势，又生成了 x86_64 的目标代码。"
+**Minutes 7-8: ISO Assembly**
+> "After the kernel was compiled, I assembled the ISO from four parts: our cross-compiled kernel, the official FreeBSD userland (pre-compiled, since we didn't modify it), our branded web interface, and the bootloader. The final ISO is 401MB and boots successfully."
 
-### Q2: "为什么不直接用 Docker 编译？"
-
-**回答：**
-> "Docker 在 Mac 上运行的是 Linux 容器，但 FreeBSD 不是 Linux，FreeBSD 的编译工具链不能在 Linux 容器里运行。所以 Docker 帮不了忙。"
-
-### Q3: "你修改了哪些文件？"
-
-**回答：**
-> "修改了 305 个文件，包括 PHP 网页文件、CSS 样式表、引导加载器配置、品牌图片（Logo、favicon、启动画面）、以及系统配置文件（产品名、版本号、版权信息）。"
-
-### Q4: "编译和简单替换有什么区别？"
-
-**回答：**
-> "简单替换只是改了 ISO 里面的文本文件，内核还是原来的。真正的编译是运行了 C 编译器，把 35,000 个 C 源文件重新编译成机器码，生成新的内核二进制文件。我们的内核是 2026 年 7 月 28 日编译的，和原始内核是不同时间、不同工具链生成的。"
-
-### Q5: "XigmaNAS 和 FreeBSD 是什么关系？"
-
-**回答：**
-> "XigmaNAS 建立在 FreeBSD 之上。FreeBSD 是引擎（内核 + 系统工具），XigmaNAS 是仪表盘（Web 管理界面 + NAS 配置）。就像 Linux 和 Ubuntu 的关系——Ubuntu 是 Linux 的一个发行版，XigmaNAS 是 FreeBSD 的一个 NAS 发行版。"
-
-### Q6: "ZFS 有什么优势？"
-
-**回答：**
-> "ZFS 相比传统 RAID 有三个核心优势：1) 数据完整性——每次读写都校验，发现错误自动修复；2) 快照——秒级创建文件系统快照，可以回滚；3) 压缩——透明压缩，节省存储空间。这些是 XigmaNAS 的核心竞争力。"
-
-### Q7: "这个项目有什么实际意义？"
-
-**回答：**
-> "这个项目展示了完整的产品定制能力——从下载开源代码，修改品牌，重新编译，到生成可安装的发布包。如果 Ridger 公司需要定制自己的 NAS 产品，这个流程就是标准做法。"
+**Minutes 9-10: Comparison Demo + Q&A**
+> "Let me show you both VMs side by side. The original XigmaNAS on the left, our compiled RidgerNAS on the right. You can see the branding differences everywhere, but the functionality is identical. The real difference is invisible — the kernel binary was compiled from source on a different machine, at a different time, with our brand configuration."
 
 ---
 
-## 6. 技术词汇速查表
+## 6. Interview Questions & Answers
 
-| 英文 | 中文 | 简单解释 |
-|------|------|---------|
-| NAS | 网络附加存储 | 文件服务器，像公司里的共享文件夹 |
-| FreeBSD | — | 一种操作系统，类似 Linux 但更稳定 |
-| ZFS | — | 超级文件系统，支持快照、压缩、自动修复 |
-| Samba | — | 让 Windows 电脑能访问 NAS 的协议 |
-| Kernel | 内核 | 操作系统的核心，管理硬件和进程 |
-| Cross-compile | 交叉编译 | 在一种 CPU 上编译另一种 CPU 的程序 |
-| ISO | 镜像文件 | 光盘的电子版，可用来安装系统 |
-| QEMU | — | 虚拟机软件，可以运行不同架构的系统 |
-| TCG | — | QEMU 的模拟模式（慢） |
-| HVF | — | Apple 的虚拟化加速（快） |
-| MFSROOT | 内存根文件系统 | 启动时加载到内存里的系统文件 |
-| Buildworld | 编译世界 | 编译整个 FreeBSD 系统（所有程序） |
-| Buildkernel | 编译内核 | 只编译 FreeBSD 内核 |
-| SVN | 版本控制系统 | 类似 Git，但更老 |
+### Q: "What challenges did you face?"
 
----
+**Answer:** "The main challenge was the architecture mismatch. My MacBook uses an ARM64 M2 chip, but the NAS needs x86_64 code. Running an x86_64 VM on ARM64 is 5-10x slower because of emulation, and some tools crash. The solution was to set up an ARM64 FreeBSD VM (which runs at native speed with Apple's Hypervisor Framework) and use FreeBSD's cross-compilation feature. This is a standard technique in embedded systems development."
 
-## 7. 演示检查清单
+### Q: "Why didn't you use Docker?"
 
-### 面试前准备
+**Answer:** "Docker on Mac runs Linux containers. FreeBSD is not Linux — it's a different operating system with a different kernel and different system calls. The FreeBSD compilation tools can't run inside a Linux container. So Docker wasn't an option."
 
-- [ ] 打开 XigmaNAS VM（UTM → XigmaNAS → Start）
-- [ ] 打开 RidgerNAS VM（QEMU 窗口已经开着）
-- [ ] 确认 XigmaNAS Web GUI 可访问（http://192.168.64.2）
-- [ ] 确认 RidgerNAS Web GUI 可访问（https://localhost:8081）
-- [ ] 打开 GitHub 仓库（https://github.com/asharjahangir/ridger-interview-assessment）
-- [ ] 打开 docs 文件夹，展示文档
-- [ ] 打开 RidgerNAS ISO 文件（展示文件大小和修改日期）
+### Q: "What exactly did you compile?"
 
-### 演示流程
+**Answer:** "I compiled the FreeBSD kernel — about 35,000 C source files processed by the Clang compiler, producing a 33MB x86_64 kernel binary. The kernel is the core of the operating system that manages hardware, processes, memory, and file systems. The rest of the system (userland tools, libraries) was downloaded pre-compiled because XigmaNAS doesn't modify those."
 
-1. **介绍任务** → 展示题目要求
-2. **任务一演示** → 打开 XigmaNAS Web GUI，展示存储配置
-3. **任务二演示** → 
-   - 展示源码修改（GitHub 上的 diff）
-   - 展示编译的内核（文件信息）
-   - 打开 RidgerNAS Web GUI，对比品牌差异
-4. **总结** → 回答面试官提问
+### Q: "Is this the same as just changing text in the ISO?"
+
+**Answer:** "No, it's fundamentally different. Text replacement just changes displayed strings in the existing files. Compilation runs a C compiler that produces new machine code. The kernel binary in our RidgerNAS ISO was compiled on July 28, 2026, from source code, on a different machine than the original. It's a genuine rebuild."
+
+### Q: "How is XigmaNAS different from TrueNAS?"
+
+**Answer:** "Both are based on FreeBSD and use ZFS. The main differences are: TrueNAS has a more modern UI, a larger community, and more commercial support. XigmaNAS is lighter weight, more community-driven, and better suited for older hardware or custom builds. Think of it like Ubuntu vs. Debian — same foundation, different target audience."
+
+### Q: "What is ZFS and why does it matter?"
+
+**Answer:** "ZFS is a file system with built-in data integrity, compression, and snapshots. Unlike traditional RAID, ZFS checksums every block of data and can detect and repair corruption automatically. The snapshots are instant and space-efficient — like Git commits for your files. This is the main reason NAS systems choose FreeBSD over Linux."
+
+### Q: "What's the practical value of this project?"
+
+**Answer:** "This demonstrates the complete workflow for customizing an open-source NAS product: downloading source code, modifying branding, compiling from source, and producing a deployable image. If Ridger Company wanted to distribute a branded NAS appliance, this is exactly the process they'd follow."
 
 ---
 
-## 8. 最后提醒
+## 7. Demo Checklist (For the Interview)
 
-**面试官想知道什么？**
-1. ✅ 你**理解**了整个流程——不只是照做，而是知道为什么
-2. ✅ 你遇到了**实际问题**并解决了——交叉编译就是最好的例子
-3. ✅ 你能**展示**成果——两台 VM 对比运行
-4. ✅ 你能**讲解**给非技术人员听——用类比和简单语言
+### Before the Interview
 
-**记住：** 你是 Web 开发者，不需要成为 FreeBSD 内核专家。面试官看重的是你的**学习能力**和**解决问题的思路**，而不是你对操作系统的深入理解。
+- [ ] **XigmaNAS VM** — start it in UTM, confirm web GUI at http://192.168.64.2
+- [ ] **RidgerNAS VM** — confirm it's running (QEMU window or UTM), web GUI at https://localhost:8081
+- [ ] **GitHub repo** — open in browser: https://github.com/asharjahangir/ridger-interview-assessment
+- [ ] **Study guide** — open docs/study-guide.md for reference
+- [ ] **ISO file** — have the file location ready to show file size and date
 
-**自信点！** 你确实做了真正的编译工作，这在 M2 Mac 上并不容易。面试官会欣赏你克服技术挑战的过程。
+### During the Presentation
+
+1. **Task 1 Demo:**
+   - Open browser to http://192.168.64.2
+   - Show the login page → log in
+   - Show Dashboard (system info)
+   - Show Storage → ZFS pool
+   - Show Services → Samba
+
+2. **Task 2 Demo:**
+   - Show GitHub repo → source code → branding changes
+   - Show the compiled ISO file (date: July 28, 2026, size: 401MB)
+   - Open browser to https://localhost:8081 (RidgerNAS)
+   - Point out: "Same login page, but says RidgerNAS"
+   - Point out: "Same functionality, but this kernel was compiled from source"
+
+---
+
+## 8. Cheat Sheet: Key Phrases
+
+**When they ask about compilation:**
+> "I ran `make buildkernel` with cross-compilation flags. This compiled 35,000 C source files into a 33MB x86_64 kernel binary using the Clang compiler."
+
+**When they ask about cross-compilation:**
+> "My MacBook is ARM64, the NAS is x86_64. I used FreeBSD's cross-compilation support: `TARGET=amd64 TARGET_ARCH=amd64` on an ARM64 FreeBSD VM."
+
+**When they ask about what you changed:**
+> "305 files across PHP, CSS, images, bootloader, and config. All instances of XigmaNAS replaced with RidgerNAS."
+
+**When they ask about the final result:**
+> "A 401MB bootable ISO with a cross-compiled kernel, branded web interface, and all original NAS functionality preserved."
+
+**When they ask about why this is impressive:**
+> "This is a complete build pipeline from source to deployable image. It's not a text replacement — it's a genuine recompilation with a different toolchain on different hardware."
+
+---
+
+## 9. Quick Reference: Technical Terms
+
+| Term | What it means | Simple analogy |
+|------|--------------|----------------|
+| **NAS** | Network Attached Storage | A shared hard drive for your office |
+| **FreeBSD** | An operating system like Linux | Linux's more stable cousin |
+| **ZFS** | Advanced file system | Like NTFS but with Git-like features |
+| **Kernel** | The core of an OS | The engine of a car |
+| **Compilation** | Turning C code into machine code | Like building a house from blueprints |
+| **Cross-compilation** | Compiling for a different CPU type | Writing a recipe in English for a Chinese chef |
+| **ISO** | A CD/DVD image file | A ZIP file of an entire CD |
+| **QEMU** | Virtual machine software | Like VMware but free |
+| **TCG** | Emulation mode (slow) | Running Windows games on a Mac |
+| **HVF** | Native acceleration (fast) | Running a Mac app on a Mac |
+| **MFSROOT** | RAM-based filesystem for booting | The OS loads entirely into RAM |
+| **SVN** | Version control (like Git) | Git's older sibling |
+| **Samba** | Windows file sharing protocol | What lets Windows see the NAS |
+| **Clang** | A C compiler | Like GCC but part of LLVM |
+| **x86_64** | Intel/AMD 64-bit architecture | What most desktop computers use |
+| **ARM64** | Apple Silicon / phone architecture | What M1/M2/M3 Macs use |

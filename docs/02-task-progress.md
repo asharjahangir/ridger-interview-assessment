@@ -1,4 +1,4 @@
-# Task Progress / 任务进度
+# Task Progress
 
 ## Task 1: Install XigmaNAS & Configure Storage Services
 

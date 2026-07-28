@@ -1,6 +1,6 @@
-# Task 2: Branding Modifications / 品牌修改
+# Task 2: Branding Modifications
 
-## English
+
 
 ### Overview
 We modified the XigmaNAS source code (SVN r10655) to rebrand it as **RidgerNAS** — a custom NAS distribution for demonstration purposes. All changes are documented below.
@@ -72,34 +72,3 @@ grep -r "XigmaNAS" --include="*.php" --include="*.inc" --include="*.css" \
 # Output: 0 (all replaced)
 ```
 
----
-
-## 中文
-
-### 概述
-我们修改了 XigmaNAS 源代码（SVN r10655），将其重新品牌化为 **RidgerNAS**——一个用于演示目的的自定义 NAS 发行版。
-
-### 品牌图片资源
-
-从公司 Logo（1120×1486 PNG）生成了以下图片：
-
-| 图片 | 文件 | 尺寸 | 格式 | 描述 |
-|------|------|------|------|------|
-| 启动画面 | `build/boot/splash.bmp` | 640×480 | BMP | 启动画面 |
-| 品牌 Logo | `build/boot/images/brand-rev.png` | 375×100 | PNG | 引导加载器标识 |
-| 登录 Logo | `www/images/login_logo.png` | 300×72 | PNG | Web 登录界面 |
-| 网站图标 | `www/favicon.ico` | 32×32 | PNG | 浏览器标签图标 |
-| 信息图标 | `www/images/info.png` | 16×16 | PNG | 状态指示器 |
-
-### 字符串修改
-
-修改了 **305 个文件**，将所有 "XigmaNAS"、"xigmanas"、"XIGMANAS" 替换为 "RidgerNAS"、"ridgernas"、"RIDGERNAS"。
-
-### 验证
-
-```bash
-# 确认没有残留的 XigmaNAS 引用
-grep -r "XigmaNAS" --include="*.php" --include="*.inc" --include="*.css" \
-  --include="*.conf" --include="*.4th" . | wc -l
-# 输出: 0 (全部替换)
-```

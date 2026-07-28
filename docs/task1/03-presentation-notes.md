@@ -1,4 +1,4 @@
-# Task 1: Presentation Notes / 讲解笔记
+# Task 1: Presentation Notes
 
 ## 10-Minute Presentation Outline / 十分钟讲解大纲
 
@@ -91,12 +91,3 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 - What are the challenges of running FreeBSD on ARM?
 - How would you extend XigmaNAS for enterprise use?
 
----
-
-## Key Technical Details / 关键技术细节
-
-- **ZFS**: Copy-on-write, checksums, snapshots, clones, compression (lz4, zstd)
-- **Samba**: SMB3 protocol, AD integration, ACLs, shadow copies
-- **iSCSI**: Block-level storage, LUNs, targets, initiators
-- **Network**: VLAN, bonding, bridge, DHCP, static IP
-- **Monitoring**: SMART, UPS (NUT), email alerts, SNMP
