@@ -1,17 +1,14 @@
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor files
+# IDE
+.idea/
+.vscode/
 *.swp
 *.swo
-*~
 
 # Build artifacts
 *.iso
-*.qcow2
-*.qcow2.bak
+*.xz
+*.gz
+*.img
 
-# Temp files
-/tmp/
-*.iso
+# OS
+.DS_Store

@@ -1,0 +1,337 @@
+name: Build RidgerNAS from Source (Full Compilation)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'build-*'
+
+env:
+  PRODUCTNAME: RidgerNAS
+  VERSION: 14.3.0.5
+  REVISION: 1
+  SVN_URL: https://svn.code.sf.net/p/xigmanas/code/trunk
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Full ISO Build
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build in FreeBSD 14.3 VM
+        uses: vmactions/freebsd-vm@v1
+        id: build
+        with:
+          release: "14.3"
+          usesh: true
+          nat: |
+            "8080": "80"
+          prepare: |
+            pkg install -y bash git pigz cdrtools zip xz gmake subversion
+
+          run: |
+            set -x
+            echo "=== BUILD ENVIRONMENT ==="
+            uname -a
+            cc --version | head -3
+            echo "CPUs: $(sysctl -n hw.ncpu)  Memory: $(sysctl -n hw.physmem | awk '{printf \"%.0f MB\", $1/1024/1024}')"
+            echo "Disk: $(df -h / | tail -1)"
+
+            #
+
+            # ----------------------------------------------------------
+            # SETUP DIRECTORY STRUCTURE
+            # ----------------------------------------------------------
+            export ROOTDIR="/usr/local/ridgernas"
+            export SVNDIR="$ROOTDIR/svn"
+            export WORKDIR="$ROOTDIR/work"
+            export ROOTFS="$ROOTDIR/rootfs"
+            export TMPDIR="/tmp/ridgernastmp"
+            export OBJDIR="/usr/obj/ridgernas"
+            export BOOTDIR="$ROOTDIR/bootloader"
+            export WORLD="$ROOTDIR/world"
+
+            mkdir -p $ROOTDIR $WORKDIR $ROOTFS $TMPDIR $BOOTDIR/kernel $BOOTDIR/defaults $WORLD
+
+            # ----------------------------------------------------------
+            # GET XIGMANAS SOURCE + APPLY BRANDING
+            # ----------------------------------------------------------
+            echo ">>> Getting XigmaNAS source code (r10655)..."
+            svn export -r10655 $SVN_URL $SVNDIR 2>&1
+
+            echo ">>> Applying RidgerNAS branding..."
+            # Product identity
+            echo "$PRODUCTNAME"       > $SVNDIR/etc/prd.name
+            echo "$VERSION"           > $SVNDIR/etc/prd.version
+            echo "ridgernas.local"    > $SVNDIR/etc/prd.url
+            echo "Ridger Company Limited" > $SVNDIR/etc/prd.copyright
+            echo "info@ridgernas.local"   > $SVNDIR/etc/prd.email
+
+            # Apply branding to all PHP/INC files
+            echo ">>> Branding PHP/INC files..."
+            find $SVNDIR/www -type f \( -name "*.php" -o -name "*.inc" \) -exec sed -i '' 's/XigmaNAS/RidgerNAS/g; s/xigmanas/ridgernas/g; s/XIGMANAS/RIDGERNAS/g' {} +
+            find $SVNDIR/etc -type f -exec sed -i '' 's/XigmaNAS/RidgerNAS/g; s/xigmanas/ridgernas/g' {} +
+            sed -i '' 's/XigmaNAS/RidgerNAS/g; s/xigmanas/ridgernas/g' $SVNDIR/conf/config.xml 2>/dev/null || true
+            sed -i '' 's/XigmaNAS/RidgerNAS/g' $SVNDIR/boot/brand-XigmaNAS.4th 2>/dev/null || true
+            mv $SVNDIR/boot/brand-XigmaNAS.4th $SVNDIR/boot/brand-RidgerNAS.4th 2>/dev/null || true
+
+            # Bootloader branding
+            sed -i '' 's/XigmaNAS/RidgerNAS/g' $SVNDIR/boot/lua/drawer.lua 2>/dev/null || true
+            if [ -f "$SVNDIR/boot/lua/gfx-XigmaNAS.lua" ]; then
+                mv "$SVNDIR/boot/lua/gfx-XigmaNAS.lua" "$SVNDIR/boot/lua/gfx-RidgerNAS.lua"
+            fi
+
+            # Copy branding images from repo
+            if [ -d "/work/source/ridger-interview-repo/branding" ]; then
+                cp -v /work/source/ridger-interview-repo/branding/* $SVNDIR/boot/images/ 2>/dev/null || true
+                cp -v /work/source/ridger-interview-repo/branding/favicon.ico $SVNDIR/www/ 2>/dev/null || true
+            fi
+
+            echo ">>> Branding applied to $(find $SVNDIR -type f | wc -l) files"
+
+            # ----------------------------------------------------------
+            # CLONE FREEBSD 14.3 SOURCE TREE
+            # ----------------------------------------------------------
+            echo ">>> Cloning FreeBSD 14.3 src tree..."
+            git clone -b releng/14.3 --depth 1 https://git.freebsd.org/src.git /usr/src
+            echo ">>> FreeBSD source ready"
+
+            # ----------------------------------------------------------
+            # BUILD KERNEL (make buildkernel)
+            # ----------------------------------------------------------
+            echo ">>> === BUILDING KERNEL ==="
+            cd /usr/src
+            cp $SVNDIR/build/kernel-config/XIGMANAS-amd64 /sys/amd64/conf/XIGMANAS-amd64
+            env MAKEOBJDIRPREFIX=$OBJDIR \
+                make -j$(sysctl -n hw.ncpu) buildkernel KERNCONF=XIGMANAS-amd64 2>&1
+            echo ">>> === KERNEL BUILD COMPLETE ==="
+
+            # Install kernel to /boot
+            env MAKEOBJDIRPREFIX=$OBJDIR \
+                DESTDIR=/ make installkernel KERNCONF=XIGMANAS-amd64 2>&1
+
+            # ----------------------------------------------------------
+            # BUILD WORLD (make buildworld)
+            # ----------------------------------------------------------
+            echo ">>> Building world (this takes ~60-90 min)..."
+            cd /usr/src
+            env MAKEOBJDIRPREFIX=$OBJDIR \
+                make -j$(sysctl -n hw.ncpu) buildworld 2>&1
+            echo ">>> World build complete"
+
+            # Install world to $WORLD (DESTDIR)
+            echo ">>> Installing world to DESTDIR..."
+            env MAKEOBJDIRPREFIX=$OBJDIR \
+                DESTDIR=$WORLD make installworld 2>&1
+            env MAKEOBJDIRPREFIX=$OBJDIR \
+                DESTDIR=$WORLD make distribution 2>&1
+
+            # ----------------------------------------------------------
+            # INSTALL PACKAGES
+            # ----------------------------------------------------------
+            echo ">>> Installing packages..."
+            pkg install -y lighttpd php82 php82-ctype php82-curl php82-dom \
+                php82-filter php82-gd php82-gettext php82-json php82-mbstring \
+                php82-mysqli php82-openssl php82-pdo php82-pdo_sqlite \
+                php82-session php82-simplexml php82-sockets php82-sqlite3 \
+                php82-xml php82-zlib samba413 rsync smartmontools \
+                e2fsprogs fusefs-ntfs sudo python3 cdialog 2>&1 | tail -5
+
+            # ----------------------------------------------------------
+            # CREATE ROOT FILESYSTEM
+            # ----------------------------------------------------------
+            echo ">>> Creating root filesystem..."
+            $SVNDIR/build/xigmanas-create-rootfs.sh -f $ROOTFS
+
+            # Configure product version
+            echo "$VERSION" > $ROOTFS/etc/prd.version
+            echo "$PRODUCTNAME" > $ROOTFS/etc/prd.name
+            cp -v $SVNDIR/conf/config.xml $ROOTFS/conf.default/ 2>/dev/null || true
+
+            # Copy web interface
+            cp -a $SVNDIR/www/* $ROOTFS/usr/local/www/ 2>/dev/null || true
+            cp -a $SVNDIR/etc/* $ROOTFS/etc/ 2>/dev/null || true
+
+            # Copy branding boot files
+            mkdir -p $ROOTFS/boot/images $ROOTFS/boot/lua
+            cp $SVNDIR/boot/loader.efi $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/loader_lua.efi $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/loader_4th.efi $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/loader_simp.efi $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/efiboot.img $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/images/xigmanas-brand-rev.png $ROOTFS/boot/images/ 2>/dev/null || true
+            cp $SVNDIR/boot/brand-RidgerNAS.4th $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/brand-XIGMANAS.4th $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/menu.4th $ROOTFS/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/lua/drawer.lua $ROOTFS/boot/lua/ 2>/dev/null || true
+            cp $SVNDIR/boot/lua/gfx-RidgerNAS.lua $ROOTFS/boot/lua/ 2>/dev/null || true
+            cp $SVNDIR/boot/splash.bmp $ROOTFS/boot/ 2>/dev/null || true
+
+            # Copy kernel
+            cp /boot/kernel/kernel $ROOTFS/boot/kernel/
+            for kmod in opensolaris.ko zfs.ko; do
+                [ -f "/boot/kernel/$kmod" ] && cp "/boot/kernel/$kmod" $ROOTFS/boot/kernel/
+            done
+
+            # Copy bootloader
+            cp /boot/loader $ROOTFS/boot/ 2>/dev/null || true
+            cp /boot/loader.rc $ROOTFS/boot/ 2>/dev/null || true
+            cp /boot/device.hints $ROOTFS/boot/ 2>/dev/null || true
+            cp /boot/defaults/loader.conf $ROOTFS/boot/defaults/ 2>/dev/null || true
+            cp /boot/lua/*.lua $ROOTFS/boot/lua/ 2>/dev/null || true
+            cp /boot/cdboot $ROOTFS/boot/ 2>/dev/null || true
+            cp /boot/boot $ROOTFS/boot/ 2>/dev/null || true
+            cp /boot/mbr $ROOTFS/boot/ 2>/dev/null || true
+
+            # Set branding in loader.conf
+            echo "loader_brand=\"$PRODUCTNAME\"" > $ROOTFS/boot/loader.conf
+
+            # ----------------------------------------------------------
+            # BUILD WORLD (XigmaNAS selective copy from installed world)
+            # ----------------------------------------------------------
+            echo ">>> Building world (selective copy from installed world)..."
+            cd $ROOTFS
+            cp $SVNDIR/build/xigmanas.files $WORKDIR/
+            for i in $(cat $WORKDIR/xigmanas.files | grep -v "^#" | head -200); do
+                file=$(echo "$i" | cut -d ":" -f 1)
+                dir=$(dirname $file)
+                if [ ! -d "$WORLD/$dir" ]; then
+                    echo "skip: $file ($dir)"
+                    continue
+                fi
+                if [ ! -d "$dir" ]; then
+                    mkdir -pv $dir
+                fi
+                cp -Rpv "$WORLD/$file" "$(echo $file | rev | cut -d '/' -f 2- | rev)" 2>/dev/null || true
+                # Create symlinks
+                if [ "$(echo "$i" | grep -c ':')" -gt 0 ]; then
+                    for j in $(echo "$i" | cut -d ":" -f 2- | sed "s/:/ /g"); do
+                        ln -sfv "/$file" "$j" 2>/dev/null || true
+                    done
+                fi
+            done
+
+            # iconv files
+            (cd "$WORLD"; find -x usr/lib/i18n 2>/dev/null | cpio -pdv $ROOTFS 2>/dev/null) || true
+            (cd "$WORLD"; find -x usr/share/i18n 2>/dev/null | cpio -pdv $ROOTFS 2>/dev/null) || true
+
+            # ----------------------------------------------------------
+            # BUILD MFSROOT
+            # ----------------------------------------------------------
+            echo ">>> Building MFSROOT..."
+            cd $WORKDIR
+            dd if=/dev/zero of=mfsroot bs=1k seek=$((144*1024)) count=0
+            md=$(mdconfig -a -t vnode -f mfsroot)
+            newfs -O2 -o space -m 0 /dev/$md
+            mount /dev/$md $TMPDIR
+            tar -cf - -C $ROOTFS ./ | tar -xvpf - -C $TMPDIR
+            echo "$PRODUCTNAME" > $TMPDIR/etc/prd.name
+            echo "$VERSION" > $TMPDIR/etc/prd.version
+            kldxref -R $TMPDIR/boot 2>/dev/null || true
+            umount $TMPDIR
+            mdconfig -d -u $md
+            pigz -8kfn mfsroot
+
+            # ----------------------------------------------------------
+            # BUILD MDLOCAL
+            # ----------------------------------------------------------
+            echo ">>> Building MDLOCAL..."
+            dd if=/dev/zero of=mdlocal bs=1k seek=$((1332*1024)) count=0
+            md2=$(mdconfig -a -t vnode -f mdlocal)
+            newfs -O2 -o space -m 0 -U -t /dev/$md2
+            mkdir -p $TMPDIR/usr/local
+            mount /dev/$md2 $TMPDIR/usr/local
+            cp -a $ROOTFS/usr/local/* $TMPDIR/usr/local/ 2>/dev/null || true
+            umount $TMPDIR/usr/local
+            mdconfig -d -u $md2
+            xz -8kv -T$(sysctl -n hw.ncpu) mdlocal
+
+            # ----------------------------------------------------------
+            # BUILD MDLOCAL-MINI
+            # ----------------------------------------------------------
+            echo ">>> Building MDLOCAL-MINI..."
+            dd if=/dev/zero of=mdlocal-mini bs=1k seek=$((52*1024)) count=0
+            md3=$(mdconfig -a -t vnode -f mdlocal-mini)
+            newfs -O2 -o space -m 0 -U -t /dev/$md3
+            mkdir -p $TMPDIR/usr/local
+            mount /dev/$md3 $TMPDIR/usr/local
+            # Copy minimal set
+            for d in www libexec bin sbin etc; do
+                [ -d "$ROOTFS/usr/local/$d" ] && tar -cf - -C "$ROOTFS/usr/local" "$d" 2>/dev/null | tar -xvpf - -C "$TMPDIR/usr/local" 2>/dev/null || true
+            done
+            umount $TMPDIR/usr/local
+            mdconfig -d -u $md3
+            xz -8kv -T$(sysctl -n hw.ncpu) mdlocal-mini
+
+            # ----------------------------------------------------------
+            # ASSEMBLE ISO
+            # ----------------------------------------------------------
+            echo ">>> === ASSEMBLING ISO ==="
+            mkdir -p $TMPDIR/isofiles
+
+            # Copy mfsroot/mdlocal
+            cp mfsroot.gz $TMPDIR/isofiles/
+            cp mdlocal.xz $TMPDIR/isofiles/
+            cp mdlocal-mini.xz $TMPDIR/isofiles/
+
+            # Boot files
+            mkdir -p $TMPDIR/isofiles/boot/{kernel,lua,defaults,images,zfs,modules}
+            cp /boot/kernel/kernel $TMPDIR/isofiles/boot/kernel/
+            pigz -9cnv /boot/kernel/kernel > $TMPDIR/isofiles/boot/kernel/kernel.gz
+            cp /boot/loader $TMPDIR/isofiles/boot/
+            cp /boot/loader.rc $TMPDIR/isofiles/boot/
+            cp /boot/device.hints $TMPDIR/isofiles/boot/
+            cp /boot/defaults/loader.conf $TMPDIR/isofiles/boot/defaults/
+            cp /boot/lua/*.lua $TMPDIR/isofiles/boot/lua/ 2>/dev/null || true
+            cp /boot/cdboot $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp /boot/boot $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp /boot/mbr $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp /boot/entropy $TMPDIR/isofiles/boot/ 2>/dev/null || true
+
+            # Branding
+            cp $SVNDIR/boot/loader.efi $TMPDIR/isofiles/boot/
+            cp $SVNDIR/boot/loader_lua.efi $TMPDIR/isofiles/boot/
+            cp $SVNDIR/boot/loader_4th.efi $TMPDIR/isofiles/boot/
+            cp $SVNDIR/boot/loader_simp.efi $TMPDIR/isofiles/boot/
+            cp $SVNDIR/boot/efiboot.img $TMPDIR/isofiles/boot/
+            cp $SVNDIR/boot/images/xigmanas-brand-rev.png $TMPDIR/isofiles/boot/images/
+            cp $SVNDIR/boot/brand-RidgerNAS.4th $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/brand-XIGMANAS.4th $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/menu.4th $TMPDIR/isofiles/boot/ 2>/dev/null || true
+            cp $SVNDIR/boot/lua/drawer.lua $TMPDIR/isofiles/boot/lua/ 2>/dev/null || true
+            cp $SVNDIR/boot/lua/gfx-RidgerNAS.lua $TMPDIR/isofiles/boot/lua/ 2>/dev/null || true
+            cp $SVNDIR/boot/splash.bmp $TMPDIR/isofiles/boot/ 2>/dev/null || true
+
+            # Kernel modules
+            cp /boot/kernel/opensolaris.ko $TMPDIR/isofiles/boot/kernel/ 2>/dev/null || true
+            cp /boot/kernel/zfs.ko $TMPDIR/isofiles/boot/kernel/ 2>/dev/null || true
+
+            # Version file
+            echo "${PRODUCTNAME}-x64-LiveCD-${VERSION}.${REVISION}" > $TMPDIR/isofiles/version
+
+            # Branding in loader.conf
+            echo "loader_brand=\"$PRODUCTNAME\"" >> $TMPDIR/isofiles/boot/loader.conf
+            echo 'loader_logo="none"' >> $TMPDIR/isofiles/boot/loader.conf
+
+            kldxref -R $TMPDIR/isofiles/boot 2>/dev/null || true
+
+            # Create ISO
+            ISOFILE="${PRODUCTNAME}-x64-LiveCD-${VERSION}.${REVISION}.iso"
+            mkisofs -v -r -J -o /work/output/$ISOFILE \
+                -b boot/cdboot -no-emul-boot \
+                -eltorito-alt-boot -b boot/efiboot.img -no-emul-boot \
+                -A "${PRODUCTNAME} CD-ROM image" \
+                -publisher "Ridger Company Limited" \
+                -V "${PRODUCTNAME}-x64-LiveCD-${VERSION}" \
+                $TMPDIR/isofiles 2>&1
+
+            echo ">>> === ISO CREATED ==="
+            ls -la /work/output/
+
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: ridgernas-compiled-iso
+          path: /work/output/*.iso
+          retention-days: 30
