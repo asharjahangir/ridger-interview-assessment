@@ -4,41 +4,49 @@
 
 | Step | Status | Notes |
 |------|--------|-------|
-| 1.1 Download ISO | ✅ Done | XigmaNAS 14.3.0.5 (r10566), 685 MB, SHA256 verified |
-| 1.2 Create VM | ✅ Done | UTM (QEMU), 2 CPU, 2048 MB RAM, 40 GB disk, legacy BIOS |
-| 1.3 Install OS | ✅ Done | Full Install, GPT, UFS, 3 GB OS + 1 GB swap + 35 GB data |
+| 1.1 Download ISO | ✅ Done | XigmaNAS 14.3.0.5 (r10566), 718 MB |
+| 1.2 Create VM | ✅ Done | UTM (QEMU TCG), 2 CPU, 2048 MB RAM, 40 GB disk |
+| 1.3 Install OS | ✅ Done | Full Install, GPT, UFS, bootable from disk |
 | 1.4 Boot & Access | ✅ Done | DHCP at 192.168.64.2, web GUI at http://192.168.64.2 |
-| 1.5 Configure Storage | ✅ Done | `/mnt/data` mounted (35 GB UFS), fstab permanent |
-| 1.6 Configure Samba | ✅ Done | WORKGROUP, share at `/mnt/data/share`, guest accessible |
-| 1.7 Presentation Notes | ✅ Done | 10-minute presentation outline in docs/ |
-| 1.8 Documentation | ✅ Done | VM setup, config details, screenshots |
+| 1.5 Configure Storage | ✅ Done | ZFS pool `storage`, dataset `storage/share`, Samba share |
+| 1.6 Presentation Notes | ✅ Done | 10-minute outline in docs/task1/03-presentation-notes.md |
 
 ## Task 2: Modify Source Code & Recompile
 
 | Step | Status | Notes |
 |------|--------|-------|
-| 2.1 Download Source | ✅ Done | SVN r10655, ~290 MB |
-| 2.2 Branding Changes | ✅ Done | 290+ files modified: PHP, CSS, INC, images, config |
-| 2.3 Build Environment | 🔶 Partial | 2nd disk added (40 GB VirtIO), ZFS pool created |
-| 2.4 Compilation | ❌ Blocked | See [Build Process](./task2/02-build-process.md) |
-| 2.5 Comparison | ✅ Partial | Live VM comparison vs original, screenshots available |
-| 2.6 Documentation | ✅ Done | Build process, comparison, branding details |
+| 2.1 Download Source | ✅ Done | SVN r10655, ~124 MB, 818 files |
+| 2.2 Branding Changes | ✅ Done | 305 files modified: PHP, CSS, INC, images, bootloader, config |
+| 2.3 Cross-Compile Kernel | ✅ **DONE** | `make buildkernel TARGET=amd64` on ARM64 VM → 33MB x86_64 kernel |
+| 2.4 Assemble ISO | ✅ **DONE** | Kernel + base.txz + branded web → 401MB bootable ISO |
+| 2.5 Comparison VM | ✅ **DONE** | RidgerNAS VM running (QEMU TCG, port 8081) |
+| 2.6 Presentation Notes | ✅ Done | 10-minute outline + study guide in docs/ |
 
-### Build Blockers (Explained)
+### Build Approach Summary
 
-The XigmaNAS build process requires:
-1. **FreeBSD OS** — The build script runs FreeBSD kernel compilation (`make buildkernel`), world compilation (`make buildworld`), and ports compilation
-2. **Native x86_64 CPU** — QEMU TCG emulation on ARM64 is ~10x slower and causes tool instability (pkg segfaults, sshd crashes)
-3. **Docker cannot help** — Docker on Mac runs Linux containers, not FreeBSD
-
-**For the interview**: The candidate demonstrates understanding of the complete build process, has applied all branding changes to the source tree, and documents the OS-level constraints that prevented full recompilation. The brand modifications are live and verifiable on the running VM.
+| Component | Source | Method |
+|-----------|--------|--------|
+| FreeBSD kernel | 35,000 C files from FreeBSD 14.3 src.txz | Cross-compiled with Clang on ARM64 VM |
+| FreeBSD userland | Official FreeBSD 14.3 amd64 base.txz (200MB) | Pre-compiled download |
+| Web interface | XigmaNAS SVN source + branding | Branded and packed into mdlocal.xz |
+| ISO assembly | All components + bootloader | mkisofs on ARM64 VM |
 
 ## Task 3: Personal Projects Showcase
 
 | Step | Status | Notes |
 |------|--------|-------|
-| 3.1 SendTile Architecture | ⏳ Pending | Architecture diagrams, live URL, reports |
-| 3.2 Pilot Workflow | ⏳ Pending | Public repo, workflow explanation |
-| 3.3 3JS Projects | ⏳ Pending | Architecture and code tours |
-| 3.4 Documentation | ⏳ Pending | |
+| 3.1-3.3 | ⏭️ Skipped | Per your request |
 
+## Key Deliverables
+
+| Item | Location |
+|------|----------|
+| Original XigmaNAS ISO | `XigmaNAS-x64-LiveCD-14.3.0.5.10566.iso` (718 MB) |
+| Compiled RidgerNAS ISO | `RidgerNAS-VM.utm/Data/install.iso` (401 MB) |
+| Source code (branded) | `XigmaNAS-source/` (SVN r10655, modified) |
+| GitHub repo | `github.com/asharjahangir/ridger-interview-assessment` |
+| Documentation | `docs/` in GitHub repo |
+| Study guide | `docs/study-guide.md` |
+| XigmaNAS VM | Running at 192.168.64.2 (UTM) |
+| RidgerNAS VM | Running at localhost:8081 (QEMU) |
+| Build VM (ARM64) | Running at localhost:2223 (QEMU + HVF) |
