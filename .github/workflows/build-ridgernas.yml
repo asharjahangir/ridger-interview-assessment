@@ -6,12 +6,6 @@ on:
     tags:
       - 'build-*'
 
-env:
-  PRODUCTNAME: RidgerNAS
-  VERSION: 14.3.0.5
-  REVISION: 1
-  SVN_URL: https://svn.code.sf.net/p/xigmanas/code/trunk
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,10 +26,17 @@ jobs:
 
           run: |
             set -x
+            # Define build variables (env vars not passed to VM SSH)
+            PRODUCTNAME=RidgerNAS
+            VERSION=14.3.0.5
+            REVISION=1
+            SVN_URL=https://svn.code.sf.net/p/xigmanas/code/trunk
+
             echo "=== BUILD ENVIRONMENT ==="
             uname -a
             cc --version | head -3
-            echo "CPUs: $(sysctl -n hw.ncpu)  Memory: $(sysctl -n hw.physmem | awk '{printf \"%.0f MB\", $1/1024/1024}')"
+            echo "CPUs: $(sysctl -n hw.ncpu)"
+            echo "Memory: $(sysctl -n hw.physmem | awk '{print int($1/1024/1024) \" MB\"}')"
             echo "Disk: $(df -h / | tail -1)"
 
             #
@@ -43,14 +44,14 @@ jobs:
             # ----------------------------------------------------------
             # SETUP DIRECTORY STRUCTURE
             # ----------------------------------------------------------
-            export ROOTDIR="/usr/local/ridgernas"
-            export SVNDIR="$ROOTDIR/svn"
-            export WORKDIR="$ROOTDIR/work"
-            export ROOTFS="$ROOTDIR/rootfs"
-            export TMPDIR="/tmp/ridgernastmp"
-            export OBJDIR="/usr/obj/ridgernas"
-            export BOOTDIR="$ROOTDIR/bootloader"
-            export WORLD="$ROOTDIR/world"
+            ROOTDIR="/usr/local/ridgernas"
+            SVNDIR="$ROOTDIR/svn"
+            WORKDIR="$ROOTDIR/work"
+            ROOTFS="$ROOTDIR/rootfs"
+            TMPDIR="/tmp/ridgernastmp"
+            OBJDIR="/usr/obj/ridgernas"
+            BOOTDIR="$ROOTDIR/bootloader"
+            WORLD="$ROOTDIR/world"
 
             mkdir -p $ROOTDIR $WORKDIR $ROOTFS $TMPDIR $BOOTDIR/kernel $BOOTDIR/defaults $WORLD
 
@@ -82,12 +83,6 @@ jobs:
                 mv "$SVNDIR/boot/lua/gfx-XigmaNAS.lua" "$SVNDIR/boot/lua/gfx-RidgerNAS.lua"
             fi
 
-            # Copy branding images from repo
-            if [ -d "/work/source/ridger-interview-repo/branding" ]; then
-                cp -v /work/source/ridger-interview-repo/branding/* $SVNDIR/boot/images/ 2>/dev/null || true
-                cp -v /work/source/ridger-interview-repo/branding/favicon.ico $SVNDIR/www/ 2>/dev/null || true
-            fi
-
             echo ">>> Branding applied to $(find $SVNDIR -type f | wc -l) files"
 
             # ----------------------------------------------------------
@@ -114,7 +109,7 @@ jobs:
             # ----------------------------------------------------------
             # BUILD WORLD (make buildworld)
             # ----------------------------------------------------------
-            echo ">>> Building world (this takes ~60-90 min)..."
+            echo ">>> Building world..."
             cd /usr/src
             env MAKEOBJDIRPREFIX=$OBJDIR \
                 make -j$(sysctl -n hw.ncpu) buildworld 2>&1
@@ -144,7 +139,6 @@ jobs:
             echo ">>> Creating root filesystem..."
             $SVNDIR/build/xigmanas-create-rootfs.sh -f $ROOTFS
 
-            # Configure product version
             echo "$VERSION" > $ROOTFS/etc/prd.version
             echo "$PRODUCTNAME" > $ROOTFS/etc/prd.name
             cp -v $SVNDIR/conf/config.xml $ROOTFS/conf.default/ 2>/dev/null || true
@@ -204,7 +198,6 @@ jobs:
                     mkdir -pv $dir
                 fi
                 cp -Rpv "$WORLD/$file" "$(echo $file | rev | cut -d '/' -f 2- | rev)" 2>/dev/null || true
-                # Create symlinks
                 if [ "$(echo "$i" | grep -c ':')" -gt 0 ]; then
                     for j in $(echo "$i" | cut -d ":" -f 2- | sed "s/:/ /g"); do
                         ln -sfv "/$file" "$j" 2>/dev/null || true
@@ -212,7 +205,6 @@ jobs:
                 fi
             done
 
-            # iconv files
             (cd "$WORLD"; find -x usr/lib/i18n 2>/dev/null | cpio -pdv $ROOTFS 2>/dev/null) || true
             (cd "$WORLD"; find -x usr/share/i18n 2>/dev/null | cpio -pdv $ROOTFS 2>/dev/null) || true
 
@@ -256,7 +248,6 @@ jobs:
             newfs -O2 -o space -m 0 -U -t /dev/$md3
             mkdir -p $TMPDIR/usr/local
             mount /dev/$md3 $TMPDIR/usr/local
-            # Copy minimal set
             for d in www libexec bin sbin etc; do
                 [ -d "$ROOTFS/usr/local/$d" ] && tar -cf - -C "$ROOTFS/usr/local" "$d" 2>/dev/null | tar -xvpf - -C "$TMPDIR/usr/local" 2>/dev/null || true
             done
@@ -270,12 +261,10 @@ jobs:
             echo ">>> === ASSEMBLING ISO ==="
             mkdir -p $TMPDIR/isofiles
 
-            # Copy mfsroot/mdlocal
             cp mfsroot.gz $TMPDIR/isofiles/
             cp mdlocal.xz $TMPDIR/isofiles/
             cp mdlocal-mini.xz $TMPDIR/isofiles/
 
-            # Boot files
             mkdir -p $TMPDIR/isofiles/boot/{kernel,lua,defaults,images,zfs,modules}
             cp /boot/kernel/kernel $TMPDIR/isofiles/boot/kernel/
             pigz -9cnv /boot/kernel/kernel > $TMPDIR/isofiles/boot/kernel/kernel.gz
@@ -303,14 +292,11 @@ jobs:
             cp $SVNDIR/boot/lua/gfx-RidgerNAS.lua $TMPDIR/isofiles/boot/lua/ 2>/dev/null || true
             cp $SVNDIR/boot/splash.bmp $TMPDIR/isofiles/boot/ 2>/dev/null || true
 
-            # Kernel modules
             cp /boot/kernel/opensolaris.ko $TMPDIR/isofiles/boot/kernel/ 2>/dev/null || true
             cp /boot/kernel/zfs.ko $TMPDIR/isofiles/boot/kernel/ 2>/dev/null || true
 
-            # Version file
             echo "${PRODUCTNAME}-x64-LiveCD-${VERSION}.${REVISION}" > $TMPDIR/isofiles/version
 
-            # Branding in loader.conf
             echo "loader_brand=\"$PRODUCTNAME\"" >> $TMPDIR/isofiles/boot/loader.conf
             echo 'loader_logo="none"' >> $TMPDIR/isofiles/boot/loader.conf
 
