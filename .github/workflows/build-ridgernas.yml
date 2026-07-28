@@ -28,7 +28,7 @@ jobs:
           nat: |
             "8080": "80"
           prepare: |
-            pkg install -y bash git pigz cdrtools zip xz gmake subversion
+            pkg install -y bash git pigz cdrtools zip gmake subversion
 
           run: |
             set -x
