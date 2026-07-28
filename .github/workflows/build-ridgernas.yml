@@ -97,7 +97,8 @@ jobs:
             # ----------------------------------------------------------
             echo ">>> === BUILDING KERNEL ==="
             cd /usr/src
-            cp $SVNDIR/build/kernel-config/XIGMANAS-amd64 /sys/amd64/conf/XIGMANAS-amd64
+            mkdir -p /usr/src/sys/amd64/conf
+            cp $SVNDIR/build/kernel-config/XIGMANAS-amd64 /usr/src/sys/amd64/conf/XIGMANAS-amd64
             env MAKEOBJDIRPREFIX=$OBJDIR \
                 make -j$(sysctl -n hw.ncpu) buildkernel KERNCONF=XIGMANAS-amd64 2>&1
             echo ">>> === KERNEL BUILD COMPLETE ==="
