@@ -1,74 +1,71 @@
-# Task 2: Branding Modifications
+# Task 2: Branding Changes / 品牌修改
 
+## Overview / 概述
 
+**English:** All branding modifications made to the XigmaNAS source code (SVN r10655) to rebrand it as RidgerNAS.
 
-### Overview
-We modified the XigmaNAS source code (SVN r10655) to rebrand it as **RidgerNAS** — a custom NAS distribution for demonstration purposes. All changes are documented below.
+**中文:** 对 XigmaNAS 源代码（SVN r10655）进行的所有品牌修改，重新品牌化为 RidgerNAS。
 
-### Source Code Download
+---
+
+## Source Code Download / 源代码下载
+
+**English:**
 ```bash
-# Download XigmaNAS source code from SVN
 svn checkout https://svn.code.sf.net/p/xigmanas/code/trunk XigmaNAS-source
-# Revision: 10655 (latest)
+# Revision: 10655
 # Size: ~124 MB, 818 files
 ```
 
-### Branding Image Assets / 品牌图片资源
+**中文：**
+```bash
+svn checkout https://svn.code.sf.net/p/xigmanas/code/trunk XigmaNAS-source
+# 版本: 10655
+# 大小: ~124 MB, 818 个文件
+```
 
-We created custom images from the company logo (1120×1486 PNG):
+## Branding Image Assets / 品牌图片资源
 
-| Image | File | Dimensions | Format | Description |
-|-------|------|-----------|--------|-------------|
-| Boot Splash | `build/boot/splash.bmp` | 640×480 | BMP | Boot splash screen |
-| Brand Logo | `build/boot/images/brand-rev.png` | 375×100 | PNG | Bootloader logo |
-| Login Logo | `www/images/login_logo.png` | 300×72 | PNG | Web GUI login logo |
-| Favicon | `www/favicon.ico` | 32×32 | PNG | Browser tab icon |
-| Info Icon | `www/images/info.png` | 16×16 | PNG | Status indicator |
+**English:** Custom images created from the company logo (1120×1486 PNG):
 
-### String Modifications / 字符串修改
+| Image | File | Dimensions | Description |
+|-------|------|-----------|-------------|
+| Boot Splash | `build/boot/splash.bmp` | 640×480 | Boot splash screen / 启动画面 |
+| Brand Logo | `build/boot/images/brand-rev.png` | 375×100 | Bootloader logo / 引导加载器标识 |
+| Login Logo | `www/images/login_logo.png` | 300×72 | Web GUI login logo / 登录界面标识 |
+| Favicon | `www/favicon.ico` | 32×32 | Browser tab icon / 浏览器标签图标 |
+| Info Icon | `www/images/info.png` | 16×16 | Status indicator / 状态指示器 |
 
-**305 files modified** across the codebase — all occurrences of "XigmaNAS", "xigmanas", and "XIGMANAS" replaced with "RidgerNAS", "ridgernas", and "RIDGERNAS":
+**中文：** 从公司 Logo（1120×1486 PNG）生成了以上图片资源。
+
+## String Modifications / 字符串修改
+
+**English:** **305 files modified** — all occurrences of "XigmaNAS", "xigmanas", and "XIGMANAS" replaced with "RidgerNAS", "ridgernas", and "RIDGERNAS".
+
+**中文：** 修改了 **305 个文件**，将所有 "XigmaNAS"、"xigmanas"、"XIGMANAS" 替换为 "RidgerNAS"、"ridgernas"、"RIDGERNAS"。
 
 ```bash
-# Replace all variants in all text files
 find . -type f \( -name "*.php" -o -name "*.inc" -o -name "*.css" \
   -o -name "*.js" -o -name "*.html" -o -name "*.4th" -o -name "*.conf" \) \
   -exec sed -i '' 's/XigmaNAS/RidgerNAS/g; s/xigmanas/ridgernas/g; s/XIGMANAS/RIDGERNAS/g' {} +
 ```
 
-### Configuration Files Modified / 配置文件修改
+## Configuration Files Modified / 配置文件修改
 
-| File | Original | Modified |
-|------|----------|----------|
-| `build/xigmanas.files` | XigmaNAS file list | Renamed entries |
-| `build/make.sh` | XigmaNAS build script | Updated references |
-| `build/functions.inc` | XigmaNAS functions | Updated paths |
-| `etc/prd.name` | `XigmaNAS` | `RidgerNAS` |
+| File / 文件 | Original / 原值 | Modified / 修改后 |
+|-------------|----------------|-------------------|
+| `etc/prd.name` | XigmaNAS | RidgerNAS |
 | `etc/rc.d/lighttpd` | xigmanas references | ridgernas references |
-| `boot/loader.conf` | loader_brand | `RidgerNAS` |
+| `boot/loader.conf` | XigmaNAS brand | RidgerNAS brand |
+| `build/xigmanas.files` | XigmaNAS file list | Renamed entries |
 
-### Bootloader Branding / 引导加载器品牌
+## Verification / 验证
 
-The bootloader displays "RidgerNAS" in the console menu:
-
-```
- __  ___                       _   _    _    ____  
- \ \/ (_) __ _ _ __ ___   __ _| \ | |  / \  / ___| 
-  \  /| |/ _` | '_ ` _ \ / _` |  \| | / _ \ \___ \ 
-  /  \| | (_| | | | | | | (_| | |\  |/ ___ \ ___) |
- /_/\_\_|\__, |_| |_| |_|\__,_|_| \_/_/   \_\____/ 
-         |___/                                     
- ╔═════════════════════════════════════════╗
- ║          Welcome to RidgerNAS           ║
- ╚═════════════════════════════════════════╝
-```
-
-### Verification / 验证
-
+**English:**
 ```bash
-# Confirm no remaining XigmaNAS references
 grep -r "XigmaNAS" --include="*.php" --include="*.inc" --include="*.css" \
   --include="*.conf" --include="*.4th" . | wc -l
-# Output: 0 (all replaced)
+# Output: 0 (all replaced / 全部替换)
 ```
 
+**中文：** 确认没有残留的 XigmaNAS 引用。
