@@ -1,63 +1,129 @@
-# Task 2: Comparison — Original vs. Modified / 原始与修改版本对比
+# Task 2: Comparison — Original XigmaNAS vs. Compiled RidgerNAS
 
-## Overview / 概述
-
-**English:** Side-by-side comparison of the original XigmaNAS and the compiled RidgerNAS.
-
-**中文:** 原始 XigmaNAS 与编译的 RidgerNAS 的并排对比。
+> **Purpose:** Visual and technical comparison of the original XigmaNAS installation and the cross-compiled, rebranded RidgerNAS. This document is designed for presentation to interviewers.
 
 ---
 
-## ISO Comparison / ISO 对比
+## 1. Login Page Comparison
 
-| File / 文件 | Size / 大小 | Description / 描述 |
-|-------------|------------|-------------------|
-| `XigmaNAS-x64-LiveCD-14.3.0.5.10566.iso` | 718 MB | Original XigmaNAS (includes embedded image / 含嵌入式映像) |
-| `RidgerNAS-x64-LiveCD-14.3.0.5.1.iso` | 401 MB | Compiled RidgerNAS (LiveCD only, no embedded / 仅 LiveCD) |
+![Login Page Side-by-Side](../assets/screenshots/login-comparison.png)
 
-## VM Comparison / 虚拟机对比
+| Element | XigmaNAS (Left) | RidgerNAS (Right) |
+|---------|----------------|-------------------|
+| **Logo** | Original XigmaNAS logo | Custom RidgerNAS logo |
+| **Product Name** | XigmaNAS | RidgerNAS |
+| **Hostname** | `xigmanas.internal` | `ridgernas.internal` |
+| **IRC Channel** | `#xigmanas` | `#ridgernas` |
+| **Copyright Footer** | XigmaNAS copyright | Ridger Company Limited copyright |
+| **Donate Link** | References XigmaNAS | References RidgerNAS |
+| **Login Title** | "Welcome to XigmaNAS" | "Welcome to RidgerNAS" |
 
-| Aspect / 方面 | Original (XigmaNAS) | Compiled (RidgerNAS) |
-|---------------|--------------------|----------------------|
-| **VM Software / 虚拟机软件** | UTM (QEMU TCG) | QEMU directly (TCG) |
-| **IP Address / IP 地址** | 192.168.64.2 | localhost:8081 (HTTPS) |
-| **Web GUI / 管理界面** | XigmaNAS WebGUI | RidgerNAS WebGUI |
-| **Bootloader / 引导加载器** | "Welcome to XigmaNAS" | "Welcome to RidgerNAS" |
-| **Kernel / 内核** | Original FreeBSD 14.3 kernel | **Cross-compiled kernel** (33MB, x86_64) |
-| **Userland / 用户空间** | Original FreeBSD binaries | FreeBSD 14.3 base.txz (pre-compiled) |
-| **Web Files / 网页文件** | Original XigmaNAS | **Branded ~305 files** → "RidgerNAS" |
-| **Hostname / 主机名** | xigmanas.internal | ridgernas.local |
-| **Login Logo / 登录标识** | XigmaNAS logo | Custom RidgerNAS logo |
-| **Favicon / 网站图标** | XigmaNAS icon | Custom "R" icon |
+### Key Branding Changes Visible
+
+1. **Logo** — The login logo was replaced with a custom-designed logo for RidgerNAS
+2. **Product naming** — Every occurrence of "XigmaNAS" in the web interface was changed to "RidgerNAS"
+3. **Copyright** — The footer now shows "Ridger Company Limited" instead of the XigmaNAS copyright
+4. **Hostname** — Changed from `xigmanas.internal` to `ridgernas.internal`
+5. **IRC reference** — The IRC channel name was updated to reflect the new product name
+
+---
+
+## 2. Dashboard / Hoard / Home Page Comparison
+
+![Dashboard Side-by-Side](../assets/screenshots/dashboard-comparison.png)
+
+| Element | XigmaNAS (Left) | RidgerNAS (Right) |
+|---------|----------------|-------------------|
+| **Hostname** | `xigmanas.internal` | `ridgernas.internal` |
+| **Product Name** | XigmaNAS | RidgerNAS |
+| **Copyright** | XigmaNAS copyright | Ridger Company Limited |
+| **System Information** | FreeBSD 14.3-RELEASE | FreeBSD 14.3-RELEASE |
+| **Memory Usage** | Slightly different (independent VMs) | Slightly different (independent VMs) |
+| **CPU Usage** | Slightly different (independent VMs) | Slightly different (independent VMs) |
+
+> **Note:** Minor differences in memory and CPU usage are expected since each VM is an independent system running at different times. The core FreeBSD kernel and NAS functionality are identical.
+
+---
+
+## 3. ISO Comparison
+
+| File | Size | Description |
+|------|------|-------------|
+| `XigmaNAS-x64-LiveCD-14.3.0.5.10566.iso` | 718 MB | Original XigmaNAS (includes embedded image) |
+| `RidgerNAS-x64-LiveCD-14.3.0.5.1.iso` | 401 MB | Compiled RidgerNAS (LiveCD only, no embedded) |
+
+### Build Method
+
+The RidgerNAS ISO was **cross-compiled** from source on an ARM64 FreeBSD build VM, targeting x86_64 architecture. The build process:
+
+1. Source code downloaded from XigmaNAS SVN
+2. Kernel cross-compiled for x86_64 (amd64)
+3. All PHP/INC source files (~290 files) patched: "XigmaNAS" → "RidgerNAS"
+4. Bootloader branding files updated
+5. Custom logo and favicon assets integrated
+6. ISO metadata set to "Ridger Company Limited"
+
+---
+
+## 3. VM Comparison
+
+| Aspect | XigmaNAS (Original) | RidgerNAS (Compiled) |
+|--------|--------------------|----------------------|
+| **VM Software** | UTM (QEMU TCG) | UTM (QEMU TCG) |
+| **IP Address** | 192.168.64.3 | 192.168.64.4 |
+| **Bootloader** | "Welcome to XigmaNAS" | "Welcome to RidgerNAS" |
+| **Kernel** | Original FreeBSD 14.3 kernel | **Cross-compiled kernel** (33MB, x86_64) |
+| **Userland** | Original FreeBSD binaries | FreeBSD 14.3 base.txz (pre-compiled) |
+| **Web Files** | Original XigmaNAS | **Branded ~305 files** → "RidgerNAS" |
+| **Hostname** | `xigmanas.internal` | `ridgernas.internal` |
+| **Login Logo** | XigmaNAS logo | Custom RidgerNAS logo |
 | **Samba NetBIOS** | XIGMANAS | RIDGERNAS |
 
-## What Was Changed / 变更内容
+---
 
-| Category / 类别 | Files / 文件数 | Details / 详情 |
-|----------------|--------------|----------------|
-| PHP/INC source / 源码 | ~290 files | All "XigmaNAS" → "RidgerNAS" |
-| CSS files / 样式文件 | ~15 files | Color references, branding / 颜色引用、品牌 |
-| Bootloader / 引导加载器 | `brand-XigmaNAS.4th` | Boot splash, menu title / 启动画面、菜单标题 |
-| Kernel config / 内核配置 | `XIGMANAS-amd64` | Renamed, cross-compiled / 重命名、交叉编译 |
-| Images / 图片 | 4 assets / 个资源 | Logo, favicon, splash, login |
-| Config files / 配置文件 | `prd.name`, `loader.conf` | Product identity / 产品标识 |
-| ISO metadata / 元数据 | Volume label, publisher / 卷标、发布者 | "Ridger Company Limited" |
+## 5. What Was Changed
 
-## What Was NOT Changed / 未变更的内容
+| Category | Files | Details |
+|----------|-------|---------|
+| PHP/INC source | ~290 files | All "XigmaNAS" → "RidgerNAS" |
+| CSS files | ~15 files | Color references, branding |
+| Bootloader | `brand-XigmaNAS.4th` | Boot splash, menu title |
+| Kernel config | `XIGMANAS-amd64` | Renamed, cross-compiled |
+| Images | 4 assets | Logo, favicon, splash, login |
+| Config files | `prd.name`, `loader.conf` | Product identity |
+| ISO metadata | Volume label, publisher | "Ridger Company Limited" |
 
-- FreeBSD kernel functionality / 内核功能 (same drivers, same behavior)
-- All NAS features / 所有 NAS 功能 (Samba, ZFS, iSCSI, FTP, NFS)
-- Security and authentication / 安全性和认证
-- Package versions / 软件包版本
+## 6. What Was NOT Changed
 
-## Boot Test Results / 启动测试结果
+- FreeBSD kernel functionality (same drivers, same behavior)
+- All NAS features (Samba, ZFS, iSCSI, FTP, NFS)
+- Security and authentication
+- Package versions
 
-| Test / 测试 | Result / 结果 |
-|-------------|--------------|
-| BIOS boot / BIOS 引导 | ✅ SeaBIOS → CD Loader → BTX loader |
-| Boot menu / 启动菜单 | ✅ "Welcome to RidgerNAS" |
-| Kernel load / 内核加载 | ✅ Our compiled kernel loads / 我们编译的内核加载成功 |
-| MFSROOT load / 根文件系统加载 | ✅ FreeBSD base + branded web / 品牌化系统加载成功 |
-| Console menu / 控制台菜单 | ✅ Boots to console / 启动到控制台菜单 |
-| Web GUI / 管理界面 | ✅ HTTPS port 8081 accessible / 可访问 |
-| SSH / 远程访问 | ✅ Port 2224 accessible / 可访问 |
+---
+
+## 7. Boot Test Results
+
+| Test | Result |
+|------|--------|
+| BIOS boot | ✅ SeaBIOS → CD Loader → BTX loader |
+| Boot menu | ✅ "Welcome to RidgerNAS" |
+| Kernel load | ✅ Our compiled kernel loads successfully |
+| MFSROOT load | ✅ FreeBSD base + branded web system loads |
+| Console menu | ✅ Boots to console configuration menu |
+| Web GUI | ✅ HTTP accessible on port 80 |
+| Storage config | ✅ ZFS pool creation, SMB shares work |
+
+---
+
+## 8. Summary
+
+The task demonstrated the ability to:
+
+1. **Set up a FreeBSD NAS from scratch** using XigmaNAS (Task 1)
+2. **Configure storage** (ZFS pool, SMB shares) through the web GUI (Task 1)
+3. **Cross-compile a FreeBSD-based operating system** from source code (Task 2)
+4. **Rebrand the entire OS** — replacing all product names, logos, and metadata (Task 2)
+5. **Deploy and compare** both versions side-by-side in virtual machines (Task 2)
+
+The result is a fully functional "RidgerNAS" OS that is visually distinct from XigmaNAS while retaining all of its NAS functionality.
