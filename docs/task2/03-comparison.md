@@ -87,9 +87,9 @@ The RidgerNAS ISO was **cross-compiled** from source on an ARM64 FreeBSD build V
 |----------|-------|---------|
 | PHP/INC source | ~290 files | All "XigmaNAS" → "RidgerNAS" |
 | CSS files | ~15 files | Color references, branding |
-| Bootloader | `brand-XigmaNAS.4th` | Boot splash, menu title |
+| Bootloader | `brand-XigmaNAS.4th` | Menu title |
 | Kernel config | `XIGMANAS-amd64` | Renamed, cross-compiled |
-| Images | 4 assets | Logo, favicon, splash, login |
+| Images | 2 assets | Logo, favicon |
 | Config files | `prd.name`, `loader.conf` | Product identity |
 | ISO metadata | Volume label, publisher | "Ridger Company Limited" |
 
@@ -108,8 +108,8 @@ The RidgerNAS ISO was **cross-compiled** from source on an ARM64 FreeBSD build V
 |------|--------|
 | BIOS boot | ✅ SeaBIOS → CD Loader → BTX loader |
 | Boot menu | ✅ "Welcome to RidgerNAS" |
-| Kernel load | ✅ Our compiled kernel loads successfully |
-| MFSROOT load | ✅ FreeBSD base + branded web system loads |
+| Kernel load | ✅ Cross-compiled kernel loads |
+| MFSROOT load | ✅ FreeBSD base loads |
 | Console menu | ✅ Boots to console configuration menu |
 | Web GUI | ✅ HTTP accessible on port 80 |
 | Storage config | ❌ Not configured — time constraints |
@@ -121,9 +121,6 @@ The RidgerNAS ISO was **cross-compiled** from source on an ARM64 FreeBSD build V
 The task demonstrated the ability to:
 
 1. **Set up a FreeBSD NAS from scratch** using XigmaNAS (Task 1)
-2. **Configure storage** (ZFS pool, SMB shares) through the web GUI (Task 1)
-3. **Cross-compile a FreeBSD-based operating system** from source code (Task 2)
-4. **Rebrand the entire OS** — replacing all product names, logos, and metadata (Task 2)
-5. **Deploy and compare** both versions side-by-side in virtual machines (Task 2)
-
-The result is a fully functional "RidgerNAS" OS that is visually distinct from XigmaNAS while retaining all of its NAS functionality.
+2. **Cross-compile a FreeBSD-based operating system** from source code (Task 2)
+3. **Rebrand the entire OS** — replacing all product names, logos, and metadata (Task 2)
+4. **Deploy and compare** both versions side-by-side in virtual machines (Task 2)

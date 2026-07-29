@@ -116,18 +116,12 @@ cd vm-setup
 | Favicon | XigmaNAS icon | Custom RidgerNAS icon (32×32) |
 | Meta Description | XigmaNAS Project | RidgerNAS Project |
 | PHP/INC/CSS | 290+ files | All "XigmaNAS" → "RidgerNAS" |
-| Boot Splash | XigmaNAS splash | "RidgerNAS" splash screen |
 
 ### Files Modified / 修改的文件
 
 ```bash
 # Source code modifications (290+ files)
 XigmaNAS-source/
-├── boot/
-│   ├── brand-XigmaNAS.4th       # Bootloader ASCII art
-│   ├── splash.bmp               # Splash screen (640×480)
-│   └── images/
-│       └── xigmanas-brand-rev.png # Boot logo
 ├── www/
 │   ├── images/
 │   │   ├── login_logo.png       # Web GUI login logo (300×72)

@@ -146,12 +146,11 @@ Modified **305 files** — all instances of "XigmaNAS"/"xigmanas"/"XIGMANAS" rep
 | What changed | Before | After |
 |-------------|--------|-------|
 | Web page titles | XigmaNAS WebGUI | RidgerNAS WebGUI |
-| Boot screen | Welcome to XigmaNAS | Welcome to RidgerNAS |
 | Hostname | xigmanas.internal | ridgernas.local |
 | Copyright | © XigmaNAS | © RidgerNAS |
 | Samba NetBIOS | XIGMANAS | RIDGERNAS |
 
-Also processed the company logo into all required formats: splash.bmp (640×480), brand-rev.png (375×100), login_logo.png (300×72), favicon.ico (32×32), info.png (16×16).
+Also processed the company logo into all required formats: login_logo.png (300×72), favicon.ico (32×32).
 
 ### 4.3 Cross-Compiling the Kernel (This is the highlight)
 
@@ -191,7 +190,7 @@ Both VMs are running:
 | **XigmaNAS** (original) | http://192.168.64.2 | Original XigmaNAS |
 | **RidgerNAS** (compiled) | https://localhost:8081 | Cross-compiled kernel + branded web |
 
-**Visible differences:** Boot screen says "RidgerNAS", web GUI is branded, logos are custom.
+**Visible differences:** Web GUI is branded, logos are custom.
 **Invisible difference:** The kernel binary was compiled from source on July 28, 2026 — it's a genuine rebuild.
 
 ### 4.6 10-Min Presentation Outline

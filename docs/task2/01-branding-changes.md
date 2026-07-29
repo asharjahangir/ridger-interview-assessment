@@ -30,11 +30,8 @@ svn checkout https://svn.code.sf.net/p/xigmanas/code/trunk XigmaNAS-source
 
 | Image | File | Dimensions | Description |
 |-------|------|-----------|-------------|
-| Boot Splash | `build/boot/splash.bmp` | 640×480 | Boot splash screen / 启动画面 |
-| Brand Logo | `build/boot/images/brand-rev.png` | 375×100 | Bootloader logo / 引导加载器标识 |
 | Login Logo | `www/images/login_logo.png` | 300×72 | Web GUI login logo / 登录界面标识 |
 | Favicon | `www/favicon.ico` | 32×32 | Browser tab icon / 浏览器标签图标 |
-| Info Icon | `www/images/info.png` | 16×16 | Status indicator / 状态指示器 |
 
 **中文：** 从公司 Logo（1120×1486 PNG）生成了以上图片资源。
 
