@@ -8,7 +8,7 @@
 
 | Task | What they asked | Status |
 |------|----------------|--------|
-| **Task 1** | Download XigmaNAS, install in VM, configure storage, 10-min presentation | ✅ Done |
+| **Task 1** | Download XigmaNAS, install in VM, configure storage, 10-min presentation | ⏸️ VM installed, storage not configured |
 | **Task 2** | Download source, modify branding, **recompile** into installable image, compare with original, 10-min presentation | ✅ Done |
 | **Task 3** | Show personal projects | Skipped |
 
@@ -99,10 +99,10 @@ My MacBook M2 (ARM64)              →    Produces x86_64 code (for Intel/AMD NA
 1. Downloaded XigmaNAS ISO (718MB from SourceForge)
 2. Created a VM in UTM (2 CPU, 2GB RAM, 40GB disk, x86_64, legacy BIOS)
 3. Installed XigmaNAS — Full Install, GPT, UFS filesystem
-4. Configured storage via Web GUI:
-   - Created ZFS pool `storage`
-   - Created dataset `storage/share`
-   - Enabled Samba (Windows file sharing)
+4. Would configure storage via Web GUI:
+   - Create ZFS pool `storage`
+   - Create dataset `storage/share`
+   - Enable Samba (Windows file sharing)
 5. Verified everything: Web GUI at http://192.168.64.2, SSH access, file sharing works
 
 ### 10-Min Presentation Outline
@@ -113,8 +113,10 @@ My MacBook M2 (ARM64)              →    Produces x86_64 code (for Intel/AMD NA
 **3-4 min: Architecture**
 Three-layer diagram: FreeBSD kernel → NAS services (Samba, ZFS) → PHP web GUI.
 
+**Note:** Storage was not configured in the demo due to time constraints. The VM was set up and accessible.
+
 **5-6 min: Live Demo**
-Show Dashboard → Storage (ZFS pool) → Services (Samba).
+Show Dashboard → (would show Storage/ZFS pool → Services/Samba if configured).
 
 **7-8 min: Pros & Cons**
 | Pros | Cons |

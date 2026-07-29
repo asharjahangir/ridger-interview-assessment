@@ -112,7 +112,7 @@ The RidgerNAS ISO was **cross-compiled** from source on an ARM64 FreeBSD build V
 | MFSROOT load | ✅ FreeBSD base + branded web system loads |
 | Console menu | ✅ Boots to console configuration menu |
 | Web GUI | ✅ HTTP accessible on port 80 |
-| Storage config | ✅ ZFS pool creation, SMB shares work |
+| Storage config | ❌ Not configured — time constraints |
 
 ---
 

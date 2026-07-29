@@ -76,5 +76,5 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 1. Show VM booting → console menu
 2. Open web GUI → login page
 3. Show dashboard → system information
-4. Storage → ZFS pool status
-5. Services → Samba configuration
+4. (Would show Storage → ZFS pool status if configured)
+5. (Would show Services → Samba configuration if configured)
