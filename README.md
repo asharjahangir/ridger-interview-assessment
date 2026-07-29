@@ -14,7 +14,7 @@ This repository contains the complete solution for the Ridger Company Limited te
 
 | Task / 任务 | Description / 描述 | Status / 状态 |
 |-------------|-------------------|--------------|
-| **Task 1** | Install XigmaNAS in a VM, configure storage services, 10-min presentation / 安装 XigmaNAS，配置存储服务，10分钟讲解 | ⏸️ VM set up, storage not configured |
+| **Task 1** | Install XigmaNAS in a VM, configure storage services, 10-min presentation / 安装 XigmaNAS，配置存储服务，10分钟讲解 | ✅ Complete  |
 | **Task 2** | Download XigmaNAS source, modify branding (Logo, Icon, strings), recompile / 下载源代码，修改品牌标识，重新编译 | ✅ Complete |
 | **Task 3** | Showcase personal projects with architecture explanation / 展示个人项目成果 | ⏸️ Pending discussion |
 
