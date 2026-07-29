@@ -83,56 +83,143 @@ cd vm-setup
 
 ---
 
-## 🔧 Task 1: XigmaNAS Installation / 安装
+## 🔧 Task 1: XigmaNAS Installation
 
-### Steps / 步骤
+### Step 1: Download the ISO
 
-1. **Download ISO**: XigmaNAS 14.3.0.5 (685 MB) from SourceForge
-2. **Create VM**: QEMU with x86_64 TCG emulation, 40GB disk, 2GB RAM
-3. **Install**: Full Install to GPT partition — UFS filesystem
-4. **Configure**: DHCP network, SSH, Web GUI
-5. **Present**: 10-minute walkthrough of XigmaNAS architecture and features
+```bash
+# Download XigmaNAS 14.3.0.5 (x64 LiveCD)
+wget https://sourceforge.net/projects/xigmanas/files/XigmaNAS-14.3.0.5/14.3.0.5/XigmaNAS-x64-LiveCD-14.3.0.5.iso/download -O XigmaNAS-x64-LiveCD-14.3.0.5.iso
+# Size: ~685 MB
+```
 
-### Key Challenges / 关键挑战
+### Step 2: Create the VM (UTM on macOS)
+
+| Setting | Value |
+|---------|-------|
+| Architecture | x86_64 (emulated via QEMU) |
+| System | FreeBSD 14 |
+| RAM | 2 GB |
+| CPU | 2 cores |
+| Disk | 40 GB (IDE) |
+| Network | Shared (vmnet) → DHCP |
+| ISO | XigmaNAS-x64-LiveCD-14.3.0.5.iso |
+
+### Step 3: Install to Disk
+
+1. Boot from ISO → "Welcome to XigmaNAS" menu
+2. Press **9** for Install → select "Full Install on HDD + DATA + SWAP"
+3. Choose GPT partition scheme → confirm
+4. After installation, remove the ISO from the VM's CD drive and reboot
+5. The VM boots to the console configuration menu
+
+### Step 4: Access the Web GUI
+
+- Check the IP on the console menu (Option 1: "Assign Network Interfaces")
+- Open browser: `http://<vm-ip>`
+- Default login: **admin / xigmanas**
+
+### Key Challenges
 
 | Challenge | Solution |
 |-----------|----------|
 | ARM64 → x86_64 emulation | QEMU TCG (slow but functional) |
-| Web GUI not accessible | Set DHCP networking → IP 10.0.2.15 |
-| Slow serial console | VNC (localhost:5900) for screen interaction |
+| Web GUI not accessible | Set DHCP networking → assigned IP via console menu |
+| Slow serial console | Use UTM GUI window for direct console access |
 
 ---
 
-## 🎨 Task 2: Branding Modifications / 品牌修改
+## 🎨 Task 2: Branding & Cross-Compilation
 
-### Changes Made / 修改内容
+### Step 1: Download XigmaNAS Source Code
 
-| Item / 项目 | Original / 原版 | Modified / 修改版 |
-|-------------|----------------|-------------------|
+```bash
+# Download from SVN (revision 10655)
+svn checkout https://svn.code.sf.net/p/xigmanas/code/trunk XigmaNAS-source
+# Size: ~124 MB, 818 files
+```
+
+### Step 2: Replace All Branding Strings
+
+```bash
+cd XigmaNAS-source
+
+# Replace all three capitalizations across PHP, INC, CSS, JS, HTML, conf files
+find . -type f \( -name "*.php" -o -name "*.inc" -o -name "*.css" -o -name "*.js" -o -name "*.html" -o -name "*.4th" -o -name "*.conf" \) \
+  -exec sed -i '' \
+  -e 's/XigmaNAS/RidgerNAS/g' \
+  -e 's/xigmanas/ridgernas/g' \
+  -e 's/XIGMANAS/RIDGERNAS/g' {} +
+```
+
+### Step 3: Update Branding Identity Files
+
+These three files control the product name, URL, and copyright text shown throughout the web GUI:
+
+```bash
+# Product name (appears in page titles, headers, emails)
+echo "RidgerNAS" > etc/prd.name
+
+# Product URL (appears in footer links and documentation)
+echo "ridgernas.local" > etc/prd.url
+
+# Copyright string (appears in page footers)
+echo "Copyright © 2018-2026 RidgerNAS <info@ridgernas.local>" > etc/prd.copyright
+```
+
+### Step 4: Replace Logo Images
+
+Replace the two image files in the source tree:
+
+| File | What it is | Where it appears |
+|------|-----------|-----------------|
+| `www/images/login_logo.png` (300×72) | Login page logo | Top of login form and web GUI header |
+| `www/favicon.ico` (32×32) | Browser tab icon | Browser tab, bookmarks |
+
+```bash
+# Copy your custom images into the source tree
+cp /path/to/custom/login_logo.png www/images/login_logo.png
+cp /path/to/custom/favicon.ico www/favicon.ico
+```
+
+### Step 5: Verify All Changes
+
+```bash
+# Should output 0 — no XigmaNAS references remaining
+grep -r "XigmaNAS" --include="*.php" --include="*.inc" --include="*.css" --include="*.conf" --include="*.4th" . | wc -l
+```
+
+Result: **305 files modified**, zero remaining references to XigmaNAS.
+
+### Step 6: Cross-Compile & Build the ISO
+
+See [docs/task2/02-build-process.md](docs/task2/02-build-process.md) for the full build process.
+
+Summary: Since the build machine is ARM64 (Apple Silicon) and the target is x86_64, the kernel must be cross-compiled:
+
+1. Set up a FreeBSD 14.3 build VM (AArch64, native)
+2. Cross-compile the x86_64 kernel using FreeBSD's build system
+3. Extract the original ISO's `mdlocal.xz` (1.3GB — the web GUI filesystem)
+4. Modify the UFS image with branded web files
+5. Repack and assemble the final ISO (401MB)
+
+```bash
+# Build script reference
+cd build
+./make.sh
+# Output: RidgerNAS-x64-LiveCD-14.3.0.5.iso
+```
+
+### Changes Summary
+
+| Item | Original | Modified |
+|------|----------|----------|
 | Product Name | XigmaNAS | RidgerNAS |
 | Hostname | xigmanas.local | ridgernas.local |
 | Copyright | © 2018-2025 XigmaNAS | © 2026 RidgerNAS |
-| Login Logo | XigmaNAS logo | Custom RidgerNAS logo (300×72) |
-| Favicon | XigmaNAS icon | Custom RidgerNAS icon (32×32) |
-| Meta Description | XigmaNAS Project | RidgerNAS Project |
+| Login Logo | XigmaNAS logo | Custom logo (300×72) |
+| Favicon | XigmaNAS icon | Custom icon (32×32) |
 | PHP/INC/CSS | 290+ files | All "XigmaNAS" → "RidgerNAS" |
-
-### Files Modified / 修改的文件
-
-```bash
-# Source code modifications (290+ files)
-XigmaNAS-source/
-├── www/
-│   ├── images/
-│   │   ├── login_logo.png       # Web GUI login logo (300×72)
-│   │   └── favicon.ico          # Favicon (32×32)
-│   ├── fbegin.inc               # Meta description
-│   └── *.php, *.inc, *.css      # 290+ files with string replacement
-└── etc/
-    ├── prd.name                 # Product name
-    ├── prd.copyright            # Copyright string
-    └── prd.url                  # Product URL
-```
 
 ---
 
