@@ -1,14 +1,6 @@
 # Task 1: Presentation Notes / 讲解笔记
 
-## Overview / 概述
-
-**English:** 10-minute presentation outline for explaining XigmaNAS.
-
-**中文:** 十分钟讲解 XigmaNAS 的提纲。
-
----
-
-## Part 1: What is XigmaNAS? (2 min) / 什么是 XigmaNAS？
+## Part 1: What is XigmaNAS? / 什么是 XigmaNAS？
 
 **English:**
 XigmaNAS is an open-source Network Attached Storage (NAS) operating system based on FreeBSD. It provides:
@@ -38,7 +30,7 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 └─────────────────────────────────────────┘
 ```
 
-## Part 3: Features (2 min) / 功能
+## Part 3: Features / 功能
 
 | Feature / 功能 | Benefit / 优势 |
 |----------------|---------------|
@@ -47,7 +39,7 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 | Multi-Protocol | SMB, NFS, AFP, FTP, iSCSI, WebDAV |
 | Open Source | Free, community-supported, auditable |
 
-## Part 4: Pros & Cons (2 min) / 优缺点
+## Part 4: Pros & Cons / 优缺点
 
 **Pros / 优点:**
 - ✅ **ZFS**: Best-in-class data integrity and snapshots
@@ -61,7 +53,7 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 - ❌ **No Container Support**: Unlike TrueNAS Scale (Kubernetes)
 - ❌ **FreeBSD Limitations**: Fewer hardware drivers than Linux
 
-## Part 5: Competitors (1 min) / 竞品对比
+## Part 5: Competitors / 竞品对比
 
 | Aspect | XigmaNAS | TrueNAS Core | TrueNAS Scale | OMV |
 |--------|----------|-------------|---------------|-----|
@@ -71,7 +63,7 @@ XigmaNAS 是一个基于 FreeBSD 的开源网络附加存储（NAS）操作系�
 | Web UI | ✓ | ✓ | ✓ | ✓ |
 | Community | Small | Large | Growing | Medium |
 
-## Part 6: Demo (1 min) / 演示
+## Part 6: Demo / 演示
 
 1. Show VM booting → console menu
 2. Open web GUI → login page
